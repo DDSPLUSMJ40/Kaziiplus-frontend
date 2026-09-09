@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Creators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE4; --paper-dark:#E6E1D2; --ink:#1C1B18; --ink-soft:#54503f;
+    --rule:#B9AF98; --green:#2B4636; --green-soft:#3E6349; --rust:#B5432E; --tag:#D9A441; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  body::before{ content:""; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, rgba(28,27,24,0.05) 1px, transparent 0); background-size:22px 22px; pointer-events:none; z-index:0; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--rule); }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+  .logo-mark{ width:34px; height:34px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:15px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:20px; text-transform:uppercase; }
+  .logo-sub{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); letter-spacing:0.08em; margin-top:2px;}
+  .nav-links{ display:flex; gap:36px; }
+  .nav-links a{ color:var(--ink); text-decoration:none; font-size:14px; font-weight:500; position:relative; padding-bottom:3px; }
+  .nav-links a.active{ color:var(--green); font-weight:600; }
+  .nav-links a::after{ content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--green); transition:width .25s ease; }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-cta{ display:flex; align-items:center; gap:20px; }
+  .btn-ghost{ font-size:14px; color:var(--ink); text-decoration:none; }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; background:var(--green); color:var(--white); padding:11px 20px; border:1px solid var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:transform .15s ease; }
+  .btn-stamp:hover{ transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--ink); }
+
+  .page-head{ padding:70px 0 50px; border-bottom:1px solid var(--rule); }
+  .eyebrow{ display:inline-flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em; color:var(--ink-soft); border:1px solid var(--rule); padding:6px 12px; margin-bottom:24px; background:var(--white); }
+  .eyebrow-dot{ width:6px; height:6px; background:var(--rust); border-radius:50%; }
+  .page-head h1{ font-family:'Oswald'; font-weight:600; text-transform:uppercase; font-size:clamp(32px,4vw,50px); line-height:1.05; margin-bottom:20px; max-width:780px; }
+  .page-head h1 em{ font-style:normal; color:var(--green); }
+  .page-head p{ font-size:16px; color:var(--ink-soft); max-width:560px; line-height:1.6; }
+
+  .ledger{ background:var(--ink); color:var(--white); padding:56px 0; }
+  .ledger .wrap{ display:grid; grid-template-columns:repeat(4,1fr); }
+  .ledger-item{ padding:0 24px; border-left:1px solid rgba(255,255,255,0.15); }
+  .ledger-item:first-child{ border-left:none; padding-left:0;}
+  .ledger-item .num{ font-family:'Oswald'; font-size:32px; font-weight:600; color:var(--tag); }
+  .ledger-item .lbl{ font-family:'IBM Plex Mono'; font-size:11px; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:0.08em; margin-top:6px;}
+
+  .section{ padding:80px 0; }
+  .section-eyebrow{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--rust); letter-spacing:0.1em; margin-bottom:14px; }
+  .section h2{ font-family:'Oswald'; text-transform:uppercase; font-size:clamp(26px,3vw,36px); font-weight:600; margin-bottom:44px; max-width:600px; }
+
+  .receipts{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; }
+  .receipt{ background:var(--white); border:1px solid var(--ink); padding:24px; position:relative; }
+  .receipt::before{ content:"STATEMENT"; position:absolute; top:14px; right:16px; font-family:'IBM Plex Mono'; font-size:9px; color:var(--rule); letter-spacing:0.1em; }
+  .receipt .quote{ font-size:14px; line-height:1.6; color:var(--ink); margin-bottom:22px; font-style:italic; }
+  .receipt .who{ display:flex; justify-content:space-between; align-items:flex-end; border-top:1px dashed var(--rule); padding-top:14px; }
+  .receipt .who h4{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; }
+  .receipt .who .role{ font-size:12px; color:var(--ink-soft); }
+  .receipt .amt{ font-family:'IBM Plex Mono'; font-weight:600; color:var(--green-soft); font-size:14px; text-align:right; }
+  .receipt .amt small{ display:block; font-size:9px; color:var(--ink-soft); font-weight:400; }
+
+  .feature{ background:var(--ink); color:var(--white); padding:60px; display:grid; grid-template-columns:1.3fr 1fr; gap:50px; }
+  .feature .quote{ font-family:'Oswald'; font-size:24px; line-height:1.35; text-transform:none; margin-bottom:28px; }
+  .feature .who{ font-family:'IBM Plex Mono'; font-size:12px; color:rgba(255,255,255,0.65); }
+  .feature .who b{ color:var(--white); display:block; font-family:'Work Sans'; font-size:14px; margin-bottom:2px; }
+  .spec-card{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.15); padding:24px; }
+  .spec-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1); font-size:13px; }
+  .spec-row .label{ font-family:'IBM Plex Mono'; font-size:10px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.06em; }
+  .spec-row .val{ font-weight:600; }
+  .spec-row .val.green{ color:#6fae87; }
+
+  footer{ padding:60px 32px; text-align:center; border-top:1px solid var(--rule); }
+  footer p{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); }
+
+  @media (max-width:900px){
+    .nav-links{ display:none; }
+    .ledger .wrap{ grid-template-columns:1fr 1fr; gap:24px; }
+    .ledger-item{ border-left:none; padding-left:0; }
+    .receipts{ grid-template-columns:1fr; }
+    .feature{ grid-template-columns:1fr; padding:36px 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="kazii-redesign.html">
+      <div class="logo-mark">K+</div>
+      <div><div class="logo-text">Kazii+</div><div class="logo-sub">CREATOR MANUFACTURING CO.</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="kazii-redesign.html#manifest">How it works</a>
+      <a href="suppliers.html">Suppliers</a>
+      <a href="creators.html" class="active">Creators</a>
+      <a href="pricing.html">Pricing</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="#" class="btn-stamp">Start a brand →</a>
+    </div>
+  </nav>
+
+  <section class="page-head">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> CREATOR LEDGER — 12,400 ACCOUNTS OPEN</div>
+    <h1>Followers became<br><em>customers.</em></h1>
+    <p>These creators already had the audience. Kazii+ gave them a supplier, a storefront, and a settlement account.</p>
+  </section>
+</div>
+
+<section class="ledger">
+  <div class="wrap">
+    <div class="ledger-item"><div class="num">12,400+</div><div class="lbl">Brands launched</div></div>
+    <div class="ledger-item"><div class="num">$84M+</div><div class="lbl">Creator revenue generated</div></div>
+    <div class="ledger-item"><div class="num">340+</div><div class="lbl">Verified suppliers</div></div>
+    <div class="ledger-item"><div class="num">4.9/5</div><div class="lbl">Average creator rating</div></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="section">
+    <div class="section-eyebrow">STATEMENTS ON FILE</div>
+    <h2>Three accounts, three categories, one pattern.</h2>
+    <div class="receipts">
+      <div class="receipt">
+        <p class="quote">"I posted the link to my Instagram story and made $8K in 48 hours. My followers were waiting for this — they just needed somewhere to buy."</p>
+        <div class="who">
+          <div><h4>Jade Williamson</h4><div class="role">Beauty · 2.1M followers</div></div>
+          <div class="amt">$47K<small>PER MONTH</small></div>
+        </div>
+      </div>
+      <div class="receipt">
+        <p class="quote">"I had 890K followers and was making pennies on affiliate deals. Kazii+ let me launch my own supplement line. My margins are 3x."</p>
+        <div class="who">
+          <div><h4>Marcus Chen</h4><div class="role">Fitness · 890K followers</div></div>
+          <div class="amt">$28K<small>PER MONTH</small></div>
+        </div>
+      </div>
+      <div class="receipt">
+        <p class="quote">"The moment I shared my storefront link, my audience showed up. Turning 1.4M followers into customers was the easiest part."</p>
+        <div class="who">
+          <div><h4>Amara Okafor</h4><div class="role">Lifestyle · 1.4M followers</div></div>
+          <div class="amt">$61K<small>PER MONTH</small></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="feature">
+      <div>
+        <p class="quote">"My cooking audience wanted my spice blends for years. I kept saying 'someday.' Kazii+ made someday happen in two weeks. Now it's my biggest income stream by far."</p>
+        <div class="who"><b>Sofia Reyes</b>@sofiareyes · Food · 3.2M followers</div>
+      </div>
+      <div class="spec-card">
+        <div class="spec-row"><span class="label">Product launched</span><span class="val">Fuego Kitchen</span></div>
+        <div class="spec-row"><span class="label">Category</span><span class="val">Specialty Food</span></div>
+        <div class="spec-row"><span class="label">Revenue, last 30 days</span><span class="val green">$83,100</span></div>
+        <div class="spec-row"><span class="label">Growth</span><span class="val green">+620%</span></div>
+        <div class="spec-row" style="border-bottom:none;"><span class="label">Status</span><span class="val">Verified Kazii+ creator</span></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <p>KAZII+ — AN AMETHYST HOLDINGS COMPANY</p>
+</footer>
+</body>
+</html>

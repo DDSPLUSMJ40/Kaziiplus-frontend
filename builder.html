@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Product Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17160F; --panel:#1D1B13; --panel-2:#242017; --line:rgba(241,238,228,0.10);
+    --text:#F1EEE4; --text-soft:rgba(241,238,228,0.55);
+    --green:#5C9075; --rust:#D06B4F; --tag:#E3B04B; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  button{ font-family:inherit; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:1px solid var(--line); background:var(--panel); flex-shrink:0; }
+  .tb-left{ display:flex; align-items:center; gap:16px; }
+  .logo{ display:flex; align-items:center; gap:9px; }
+  .logo-mark{ width:26px; height:26px; border:2px solid var(--text); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:11px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:14px; text-transform:uppercase; }
+  .divider{ width:1px; height:20px; background:var(--line); }
+  .doc-title{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-soft); }
+  .doc-title b{ color:var(--text); }
+  .tb-right{ display:flex; align-items:center; gap:14px; }
+  .btn-ghost{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); background:none; border:1px solid var(--line); padding:9px 14px; cursor:pointer; text-transform:uppercase; }
+  .btn-ghost.on{ color:var(--tag); border-color:var(--tag); }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:var(--tag); color:#26200e; padding:10px 18px; border:none; cursor:pointer; }
+
+  .body{ flex:1; display:flex; overflow:hidden; }
+
+  .rail{ width:76px; background:var(--panel); border-right:1px solid var(--line); flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding-top:14px; gap:2px; }
+  .rail-item{ width:64px; padding:11px 0; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; color:var(--text-soft); border-left:2px solid transparent; background:none; border-top:none; border-right:none; border-bottom:none; }
+  .rail-item .ic{ font-family:'IBM Plex Mono'; font-size:14px; }
+  .rail-item .lbl{ font-family:'IBM Plex Mono'; font-size:9px; text-transform:uppercase; letter-spacing:0.03em; }
+  .rail-item.active{ color:var(--tag); border-left:2px solid var(--tag); background:var(--panel-2); }
+
+  .panel{ width:280px; background:var(--panel); border-right:1px solid var(--line); padding:22px 20px; overflow-y:auto; flex-shrink:0; }
+  .panel-label{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-soft); margin-bottom:14px; }
+  .panel-sub{ font-size:12px; color:var(--text-soft); line-height:1.6; margin-bottom:18px; }
+
+  .type-option{ display:flex; align-items:center; justify-content:space-between; padding:14px 14px; border:1px solid var(--line); margin-bottom:8px; cursor:pointer; background:none; width:100%; color:var(--text); }
+  .type-option.selected{ border-color:var(--tag); background:var(--panel-2); }
+  .type-option .to-name{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500; }
+  .type-option .to-name .ic{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-soft); }
+  .type-option.selected .to-name .ic{ color:var(--tag); }
+  .type-option .check{ color:var(--tag); font-family:'IBM Plex Mono'; font-size:12px; }
+
+  .swatch-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .swatch{ aspect-ratio:1; border:2px solid var(--line); cursor:pointer; position:relative; }
+  .swatch.selected{ border-color:var(--tag); }
+  .swatch .name{ position:absolute; bottom:-18px; left:0; right:0; text-align:center; font-family:'IBM Plex Mono'; font-size:8px; color:var(--text-soft); text-transform:uppercase; }
+
+  .field-label{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; color:var(--text-soft); margin-bottom:8px; display:block; }
+  .text-input{ width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px; font-family:'Work Sans'; font-size:13px; margin-bottom:16px; }
+  .text-input:disabled{ opacity:0.4; }
+  .btn-block{ width:100%; padding:12px; background:var(--panel-2); border:1px solid var(--line); color:var(--text); font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; cursor:pointer; margin-bottom:10px; }
+  .btn-block:hover{ border-color:var(--tag); }
+  .file-drop{ border:1px dashed var(--line); padding:22px 14px; text-align:center; margin-bottom:14px; cursor:pointer; }
+  .file-drop:hover{ border-color:var(--tag); }
+  .file-drop .mono{ font-size:10px; color:var(--text-soft); }
+  .integration-note{ font-size:12px; color:var(--text-soft); line-height:1.6; padding:16px; border:1px dashed var(--line); }
+
+  .stage-wrap{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; padding:30px; overflow:auto; }
+  .proof-label{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); letter-spacing:0.08em; margin-bottom:14px; text-transform:uppercase; }
+  .proof-label b{ color:var(--tag); }
+  .proof-label.hidden{ visibility:hidden; }
+  .stage{ width:460px; height:560px; background:#EDE8DA; position:relative; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 1px var(--line); overflow:hidden; }
+  .crop{ position:absolute; width:16px; height:16px; }
+  .crop::before,.crop::after{ content:""; position:absolute; background:var(--tag); }
+  .crop::before{ width:16px; height:1px; top:0; }
+  .crop::after{ width:1px; height:16px; left:0; }
+  .crop.tl{ top:-24px; left:-24px; } .crop.tr{ top:-24px; right:-24px; }
+  .crop.bl{ bottom:-24px; left:-24px; } .crop.br{ bottom:-24px; right:-24px; }
+  .crop.hidden{ display:none; }
+
+  .garment{ position:relative; transition:background .2s ease; }
+  .garment.tshirt{ width:280px; height:340px; border-radius:8px 8px 30px 30px; }
+  .garment.hoodie{ width:280px; height:340px; border-radius:8px 8px 30px 30px; }
+  .garment.hoodie::before{ content:""; position:absolute; top:-26px; left:50%; transform:translateX(-50%); width:120px; height:50px; background:inherit; border-radius:50px 50px 0 0; }
+  .garment.mug{ width:220px; height:220px; border-radius:50%; }
+  .garment.tote{ width:240px; height:300px; border-radius:4px; }
+  .garment.tote::before, .garment.tote::after{ content:""; position:absolute; top:-30px; width:14px; height:44px; background:inherit; border-radius:6px; }
+  .garment.tote::before{ left:60px; } .garment.tote::after{ right:60px; }
+  .garment.poster{ width:400px; height:520px; border-radius:0; }
+
+  .layer-el{ position:absolute; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }
+  .layer-el.selected-outline{ outline:1px dashed var(--tag); outline-offset:6px; }
+  .layer-el img{ max-width:120px; max-height:120px; display:block; }
+  .layer-text{ font-family:'Oswald'; font-weight:600; font-size:14px; text-transform:uppercase; background:var(--white); border:1px solid #1C1B18; color:#1C1B18; padding:5px 12px; white-space:nowrap; }
+
+  .stage-meta{ margin-top:16px; font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); text-align:center; }
+
+  .layers{ width:260px; background:var(--panel); border-left:1px solid var(--line); padding:22px 20px; flex-shrink:0; overflow-y:auto; }
+  .layers-head{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-soft); margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+  .layer-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 8px; border-bottom:1px dashed var(--line); font-size:13px; cursor:pointer; }
+  .layer-row.selected{ background:var(--panel-2); }
+  .layer-row .l-name{ display:flex; align-items:center; gap:8px; }
+  .layer-row .l-ic{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--tag); }
+  .layer-row .l-del{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); background:none; border:none; cursor:pointer; }
+  .layer-row .l-del:hover{ color:var(--rust); }
+  .layer-empty{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); text-align:center; padding:30px 0; }
+
+  .bottom-strip{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-top:1px solid var(--line); background:var(--panel); }
+  .swatch-name{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-soft); display:flex; align-items:center; gap:8px; }
+  .swatch-dot{ width:14px; height:14px; border-radius:50%; background:#EDE8DA; border:1px solid var(--line); }
+
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#1D1B13; color:var(--text); font-family:'IBM Plex Mono'; font-size:12px; padding:13px 22px; border:1px solid var(--tag); opacity:0; pointer-events:none; transition:all .3s ease; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-left">
+    <a href="site.html" style="display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit;">
+      <div class="logo-mark">K+</div><div class="logo-text">Kazii+</div>
+    </a>
+    <div class="divider"></div>
+    <a href="app.html" class="mono" style="font-size:11px; color:var(--text-soft); text-decoration:none;">← Workspace</a>
+    <div class="divider"></div>
+    <div class="doc-title">PRODUCT BUILDER · <b>DOCKET DRAFT #04,822</b></div>
+  </div>
+  <div class="tb-right">
+    <button class="btn-ghost" id="previewBtn" onclick="togglePreview()">◎ Preview</button>
+    <button class="btn-stamp" onclick="saveDesign()">⇧ Save design</button>
+  </div>
+</div>
+
+<div class="body">
+  <div class="rail" id="rail">
+    <button class="rail-item active" data-tab="product" onclick="setTab('product')"><span class="ic">▣</span><span class="lbl">Product</span></button>
+    <button class="rail-item" data-tab="color" onclick="setTab('color')"><span class="ic">◐</span><span class="lbl">Color</span></button>
+    <button class="rail-item" data-tab="artwork" onclick="setTab('artwork')"><span class="ic">▤</span><span class="lbl">Artwork</span></button>
+    <button class="rail-item" data-tab="text" onclick="setTab('text')"><span class="ic">Aa</span><span class="lbl">Text</span></button>
+    <button class="rail-item" data-tab="printful" onclick="setTab('printful')"><span class="ic">⎙</span><span class="lbl">Printful</span></button>
+    <button class="rail-item" data-tab="gelato" onclick="setTab('gelato')"><span class="ic">⌘</span><span class="lbl">Gelato</span></button>
+  </div>
+
+  <div class="panel" id="panel"><!-- rendered by JS --></div>
+
+  <div class="stage-wrap">
+    <div class="proof-label" id="proofLabel">PROOF · T-SHIRT — <b>CHALK WHITE</b></div>
+    <div class="stage" id="stage">
+      <div class="crop tl" id="cropTL"></div><div class="crop tr" id="cropTR"></div><div class="crop bl" id="cropBL"></div><div class="crop br" id="cropBR"></div>
+      <div class="garment tshirt" id="garment"></div>
+    </div>
+    <div class="stage-meta">PRINT AREA 12"×16" · CENTER CHEST PLACEMENT</div>
+  </div>
+
+  <div class="layers">
+    <div class="layers-head">Layers</div>
+    <div id="layerList"></div>
+  </div>
+</div>
+
+<div class="bottom-strip">
+  <div class="swatch-name"><span class="swatch-dot" id="swatchDot"></span> <span id="swatchLabel">T-Shirt · Chalk White</span></div>
+  <button class="btn-stamp" onclick="toast('Added to product list')">→ Use in product</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const PRODUCTS = {
+    tshirt: {label:'T-Shirt', icon:'▣'},
+    hoodie: {label:'Hoodie', icon:'▣'},
+    mug: {label:'Mug', icon:'◐'},
+    tote: {label:'Tote Bag', icon:'▤'},
+    poster: {label:'Poster', icon:'▭'}
+  };
+  const COLORS = {
+    chalk: {label:'Chalk White', hex:'#EDE8DA'},
+    jet: {label:'Jet Black', hex:'#2A2A28'},
+    sand: {label:'Sand', hex:'#D9C9A8'},
+    sage: {label:'Sage', hex:'#9CAF97'},
+    rust: {label:'Rust', hex:'#B5432E'}
+  };
+
+  let state = {
+    productType: 'tshirt',
+    color: 'chalk',
+    activeTab: 'product',
+    preview: false,
+    layers: [{id:1, type:'text', content:'Your Brand', dy:0}],
+    selectedLayerId: 1,
+    nextId: 2
+  };
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  function setTab(tab){
+    state.activeTab = tab;
+    document.querySelectorAll('.rail-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    renderPanel();
+  }
+
+  function selectProduct(type){
+    state.productType = type;
+    renderPanel(); renderStage(); renderProofLabel(); renderBottomStrip();
+  }
+  function selectColor(c){
+    state.color = c;
+    renderPanel(); renderStage(); renderProofLabel(); renderBottomStrip();
+  }
+
+  function addTextLayer(){
+    const id = state.nextId++;
+    state.layers.push({id, type:'text', content:'New Text', dy: (state.layers.length)*34});
+    state.selectedLayerId = id;
+    renderLayers(); renderStage(); renderPanel();
+  }
+  function addImageLayer(dataUrl){
+    const id = state.nextId++;
+    state.layers.push({id, type:'image', src:dataUrl, dy: 0});
+    state.selectedLayerId = id;
+    renderLayers(); renderStage(); renderPanel();
+    toast('Artwork added to layers');
+  }
+  function deleteLayer(id, evt){
+    if(evt) evt.stopPropagation();
+    state.layers = state.layers.filter(l=>l.id!==id);
+    if(state.selectedLayerId===id) state.selectedLayerId = state.layers.length ? state.layers[0].id : null;
+    renderLayers(); renderStage(); renderPanel();
+  }
+  function selectLayer(id){
+    state.selectedLayerId = id;
+    renderLayers(); renderStage();
+    const layer = state.layers.find(l=>l.id===id);
+    if(layer && layer.type==='text') setTab('text'); else renderPanel();
+  }
+  function updateSelectedText(val){
+    const layer = state.layers.find(l=>l.id===state.selectedLayerId);
+    if(layer && layer.type==='text'){ layer.content = val; renderStage(); renderLayers(); }
+  }
+
+  function handleFile(input){
+    const file = input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => addImageLayer(e.target.result);
+    reader.readAsDataURL(file);
+  }
+
+  function togglePreview(){
+    state.preview = !state.preview;
+    const btn = document.getElementById('previewBtn');
+    btn.classList.toggle('on', state.preview);
+    btn.innerHTML = state.preview ? '✎ Edit' : '◎ Preview';
+    document.getElementById('proofLabel').classList.toggle('hidden', state.preview);
+    ['cropTL','cropTR','cropBL','cropBR'].forEach(id=>document.getElementById(id).classList.toggle('hidden', state.preview));
+    document.getElementById('panel').style.visibility = state.preview ? 'hidden' : 'visible';
+    document.getElementById('rail').style.pointerEvents = state.preview ? 'none' : 'auto';
+    document.getElementById('rail').style.opacity = state.preview ? '0.35' : '1';
+  }
+
+  function saveDesign(){
+    toast('Draft saved — DOCKET #04,822 (session only, no backend)');
+  }
+
+  function renderProofLabel(){
+    document.getElementById('proofLabel').innerHTML =
+      `PROOF · ${PRODUCTS[state.productType].label.toUpperCase()} — <b>${COLORS[state.color].label.toUpperCase()}</b>`;
+  }
+  function renderBottomStrip(){
+    document.getElementById('swatchDot').style.background = COLORS[state.color].hex;
+    document.getElementById('swatchLabel').textContent = `${PRODUCTS[state.productType].label} · ${COLORS[state.color].label}`;
+  }
+
+  function renderStage(){
+    const garment = document.getElementById('garment');
+    garment.className = 'garment ' + state.productType;
+    garment.style.background = COLORS[state.color].hex;
+    garment.innerHTML = '';
+    state.layers.forEach((l, i) => {
+      const el = document.createElement('div');
+      el.className = 'layer-el' + (l.id===state.selectedLayerId ? ' selected-outline' : '');
+      el.style.top = `calc(50% + ${l.dy}px)`;
+      if(l.type==='text'){
+        el.innerHTML = `<div class="layer-text">${l.content}</div>`;
+      } else {
+        el.innerHTML = `<img src="${l.src}">`;
+      }
+      garment.appendChild(el);
+    });
+  }
+
+  function renderLayers(){
+    const list = document.getElementById('layerList');
+    if(!state.layers.length){
+      list.innerHTML = '<div class="layer-empty">No layers yet.<br>Add artwork or text to build the stack.</div>';
+      return;
+    }
+    list.innerHTML = state.layers.map(l => `
+      <div class="layer-row ${l.id===state.selectedLayerId?'selected':''}" onclick="selectLayer(${l.id})">
+        <div class="l-name"><span class="l-ic">${l.type==='text'?'Aa':'▤'}</span> ${l.type==='text' ? l.content : 'Image layer'}</div>
+        <button class="l-del" onclick="deleteLayer(${l.id}, event)">✕</button>
+      </div>`).join('');
+  }
+
+  function renderPanel(){
+    const panel = document.getElementById('panel');
+    if(state.activeTab==='product'){
+      panel.innerHTML = `<div class="panel-label">Choose product type</div>` +
+        Object.entries(PRODUCTS).map(([key,p]) => `
+          <button class="type-option ${state.productType===key?'selected':''}" onclick="selectProduct('${key}')">
+            <div class="to-name"><span class="ic">${p.icon}</span> ${p.label}</div>
+            ${state.productType===key ? '<span class="check">✓</span>' : ''}
+          </button>`).join('');
+    }
+    else if(state.activeTab==='color'){
+      panel.innerHTML = `<div class="panel-label">Choose color</div><div class="swatch-grid">` +
+        Object.entries(COLORS).map(([key,c]) => `
+          <div class="swatch ${state.color===key?'selected':''}" style="background:${c.hex}" onclick="selectColor('${key}')">
+            <div class="name">${c.label}</div>
+          </div>`).join('') + `</div>`;
+    }
+    else if(state.activeTab==='artwork'){
+      panel.innerHTML = `
+        <div class="panel-label">Upload artwork</div>
+        <div class="panel-sub">Uploads render in-browser only — nothing leaves this session.</div>
+        <label class="file-drop" for="fileInput">
+          <div class="mono">CLICK TO UPLOAD IMAGE</div>
+        </label>
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this)">
+      `;
+    }
+    else if(state.activeTab==='text'){
+      const selected = state.layers.find(l=>l.id===state.selectedLayerId && l.type==='text');
+      panel.innerHTML = `
+        <div class="panel-label">Text layer</div>
+        <label class="field-label">Content</label>
+        <input class="text-input" id="textInput" ${selected?'':'disabled placeholder="Select a text layer"'} value="${selected?selected.content:''}" oninput="updateSelectedText(this.value)">
+        <button class="btn-block" onclick="addTextLayer()">+ Add text layer</button>
+      `;
+    }
+    else if(state.activeTab==='printful' || state.activeTab==='gelato'){
+      const name = state.activeTab==='printful' ? 'Printful' : 'Gelato';
+      panel.innerHTML = `<div class="panel-label">${name} integration</div>
+        <div class="integration-note">Connect ${name} from Settings to sync fulfillment. Not part of this front-end demo — no backend to connect to yet.</div>`;
+    }
+  }
+
+  renderPanel(); renderStage(); renderLayers(); renderProofLabel(); renderBottomStrip();
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>@jadewilliamson — Kazii+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE4; --paper-dark:#E6E1D2; --ink:#1C1B18; --ink-soft:#54503f;
+    --rule:#B9AF98; --green:#2B4636; --green-soft:#3E6349; --rust:#B5432E; --tag:#D9A441; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  button{ font-family:inherit; cursor:pointer; }
+  body::before{ content:""; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, rgba(28,27,24,0.05) 1px, transparent 0); background-size:22px 22px; pointer-events:none; z-index:0; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:22px 0; border-bottom:1px solid var(--rule); }
+  .logo{ display:flex; align-items:center; gap:9px; text-decoration:none; color:inherit; }
+  .logo-mark{ width:28px; height:28px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:12px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:16px; text-transform:uppercase; }
+  .cart-btn{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:none; border:1px solid var(--ink); padding:9px 16px; color:var(--ink); }
+  .cart-btn:hover{ background:var(--ink); color:var(--white); }
+
+  .hero{ display:flex; align-items:center; gap:26px; padding:50px 0 36px; border-bottom:1px solid var(--rule); }
+  .avatar{ width:92px; height:92px; border-radius:50%; background:linear-gradient(135deg,#c65f8a,#5b4a9e); flex-shrink:0; border:3px solid var(--white); box-shadow:0 0 0 1px var(--rule); }
+  .hero h1{ font-family:'Oswald'; text-transform:uppercase; font-size:26px; font-weight:600; display:flex; align-items:center; gap:10px; }
+  .verified{ font-family:'IBM Plex Mono'; font-size:9px; color:var(--green); border:1px solid var(--green); padding:2px 7px; letter-spacing:0.04em; }
+  .hero .handle{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); margin:4px 0 10px; }
+  .hero .bio{ font-size:13.5px; color:var(--ink-soft); max-width:480px; line-height:1.5; }
+  .hero-stats{ display:flex; gap:20px; margin-left:auto; text-align:right; }
+  .hero-stats div .num{ font-family:'Oswald'; font-size:19px; font-weight:600; }
+  .hero-stats div .lbl{ font-family:'IBM Plex Mono'; font-size:9px; color:var(--ink-soft); text-transform:uppercase; }
+
+  .section{ padding:44px 0; }
+  .section-eyebrow{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--rust); letter-spacing:0.1em; margin-bottom:10px; }
+  .section h2{ font-family:'Oswald'; text-transform:uppercase; font-size:22px; font-weight:600; margin-bottom:28px; }
+
+  .social-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  .social-card{ background:var(--white); border:1px solid var(--rule); overflow:hidden; }
+  .social-thumb{ width:100%; aspect-ratio:1; position:relative; }
+  .social-platform{ position:absolute; top:8px; left:8px; font-family:'IBM Plex Mono'; font-size:8.5px; font-weight:600; text-transform:uppercase; padding:3px 7px; background:rgba(0,0,0,0.55); color:#fff; letter-spacing:0.05em; }
+  .social-body{ padding:11px 12px; }
+  .social-caption{ font-size:11px; color:var(--ink); line-height:1.4; margin-bottom:8px; min-height:30px; }
+  .social-meta{ font-family:'IBM Plex Mono'; font-size:9.5px; color:var(--ink-soft); }
+
+  .product-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+  .product-card{ background:var(--white); border:1px solid var(--ink); }
+  .product-thumb{ width:100%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+  .product-body{ padding:18px; }
+  .product-body h3{ font-size:15px; margin-bottom:4px; }
+  .product-body .cat{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); text-transform:uppercase; margin-bottom:12px; }
+  .product-row{ display:flex; justify-content:space-between; align-items:center; }
+  .product-price{ font-family:'Oswald'; font-size:19px; font-weight:600; }
+  .buy-btn{ font-family:'IBM Plex Mono'; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; background:var(--green); color:var(--white); border:none; padding:10px 16px; }
+  .buy-btn:hover{ background:var(--green-soft); }
+
+  footer{ padding:44px 0 60px; text-align:center; border-top:1px solid var(--rule); margin-top:20px; }
+  .powered{ display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft); text-decoration:none; padding:10px 18px; border:1px solid var(--rule); }
+  .powered:hover{ border-color:var(--ink); color:var(--ink); }
+  .powered b{ color:var(--ink); }
+
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--white); font-family:'IBM Plex Mono'; font-size:12px; padding:13px 22px; border:1px solid var(--tag); opacity:0; pointer-events:none; transition:all .3s ease; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:800px){
+    .hero{ flex-wrap:wrap; }
+    .hero-stats{ margin-left:0; width:100%; justify-content:flex-start; text-align:left; }
+    .social-grid{ grid-template-columns:1fr 1fr; }
+    .product-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <a href="site.html" class="logo"><div class="logo-mark">K+</div><div class="logo-text">Kazii+</div></a>
+    <button class="cart-btn" onclick="toast('Cart isn\'t wired up in this demo')">Cart (0)</button>
+  </nav>
+
+  <section class="hero">
+    <div class="avatar"></div>
+    <div>
+      <h1>Jade Williamson <span class="verified">VERIFIED CREATOR</span></h1>
+      <div class="handle">@jadewilliamson</div>
+      <div class="bio">Beauty creator sharing skincare that actually works. Everything below, I use, make, and stand behind.</div>
+    </div>
+    <div class="hero-stats">
+      <div><div class="num">2.1M</div><div class="lbl">Followers</div></div>
+      <div><div class="num">4.9</div><div class="lbl">Rating</div></div>
+      <div><div class="num">3</div><div class="lbl">Products</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-eyebrow">FROM @JADEWILLIAMSON</div>
+    <h2>Latest posts</h2>
+    <div class="social-grid" id="socialGrid"></div>
+  </section>
+
+  <section class="section" style="padding-top:0;">
+    <div class="section-eyebrow">SHOP</div>
+    <h2>Products</h2>
+    <div class="product-grid" id="productGrid"></div>
+  </section>
+
+  <footer>
+    <a class="powered" href="site.html">Powered by <b>Kazii+</b></a>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._t);
+    window._t = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+
+  const posts = [
+    { platform:'Instagram', caption:"Two weeks of using this every morning and my skin genuinely feels different \ud83d\udc9a", likes:'4,281' },
+    { platform:'TikTok', caption:"GRWM but I keep stopping to talk about this oil, sorry not sorry", likes:'18.9K' },
+    { platform:'Instagram', caption:"Restocked Glow Serum Vol. 2 \u2014 it sold out in 6 days last time", likes:'6,940' },
+    { platform:'TikTok', caption:"Answering your #1 most-asked question: yes, I make this myself now", likes:'31.4K' },
+  ];
+  function platformGrad(p){ return p === 'TikTok' ? 'linear-gradient(135deg,#1C1B18,#3a3733)' : 'linear-gradient(135deg,#c65f8a,#5b4a9e)'; }
+  document.getElementById('socialGrid').innerHTML = posts.map(p => `
+    <div class="social-card">
+      <div class="social-thumb" style="background:${platformGrad(p.platform)}"><span class="social-platform">${p.platform}</span></div>
+      <div class="social-body">
+        <div class="social-caption">${p.caption}</div>
+        <div class="social-meta">\u2764 ${p.likes}</div>
+      </div>
+    </div>`).join('');
+
+  const products = [
+    { name:'Glow Serum Vol. 2', category:'Skincare', price:38 },
+    { name:'Recovery Body Oil', category:'Skincare', price:28 },
+    { name:'Everyday Tote', category:'Apparel', price:32 },
+  ];
+  function catStyle(cat){
+    const map = { Skincare:'linear-gradient(135deg,#3E6349,#2B4636)', Apparel:'linear-gradient(135deg,#54503f,#1C1B18)' };
+    return map[cat] || 'linear-gradient(135deg,#54503f,#1C1B18)';
+  }
+  function catIcon(cat){
+    const icons = {
+      Skincare: `<path d="M50 15 C64 38 74 54 74 67 A24 24 0 1 1 26 67 C26 54 36 38 50 15 Z" fill="#F1EEE4"/>`,
+      Apparel: `<path d="M32 38 H68 L74 82 H26 Z" fill="#F1EEE4"/><path d="M40 38 Q40 22 50 22 Q60 22 60 38" stroke="#F1EEE4" stroke-width="5" fill="none"/>`
+    };
+    return icons[cat] || icons['Apparel'];
+  }
+  document.getElementById('productGrid').innerHTML = products.map(p => `
+    <div class="product-card">
+      <div class="product-thumb" style="background:${catStyle(p.category)}"><svg viewBox="0 0 100 100" width="40%" height="40%">${catIcon(p.category)}</svg></div>
+      <div class="product-body">
+        <h3>${p.name}</h3>
+        <div class="cat">${p.category}</div>
+        <div class="product-row">
+          <span class="product-price">$${p.price}</span>
+          <button class="buy-btn" onclick="toast('Added to cart \u2014 checkout isn\\'t wired up in this demo')">Add to cart</button>
+        </div>
+      </div>
+    </div>`).join('');
+</script>
+</body>
+</html>

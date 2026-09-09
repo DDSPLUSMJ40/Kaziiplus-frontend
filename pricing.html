@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE4; --paper-dark:#E6E1D2; --ink:#1C1B18; --ink-soft:#54503f;
+    --rule:#B9AF98; --green:#2B4636; --green-soft:#3E6349; --rust:#B5432E; --tag:#D9A441; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  body::before{ content:""; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, rgba(28,27,24,0.05) 1px, transparent 0); background-size:22px 22px; pointer-events:none; z-index:0; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--rule); }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+  .logo-mark{ width:34px; height:34px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:15px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:20px; text-transform:uppercase; }
+  .logo-sub{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); letter-spacing:0.08em; margin-top:2px;}
+  .nav-links{ display:flex; gap:36px; }
+  .nav-links a{ color:var(--ink); text-decoration:none; font-size:14px; font-weight:500; position:relative; padding-bottom:3px; }
+  .nav-links a.active{ color:var(--green); font-weight:600; }
+  .nav-links a::after{ content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--green); transition:width .25s ease; }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-cta{ display:flex; align-items:center; gap:20px; }
+  .btn-ghost{ font-size:14px; color:var(--ink); text-decoration:none; }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; background:var(--green); color:var(--white); padding:11px 20px; border:1px solid var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:transform .15s ease; }
+  .btn-stamp:hover{ transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--ink); }
+
+  .page-head{ padding:70px 0 50px; border-bottom:1px solid var(--rule); text-align:center; }
+  .eyebrow{ display:inline-flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em; color:var(--ink-soft); border:1px solid var(--rule); padding:6px 12px; margin-bottom:24px; background:var(--white); }
+  .eyebrow-dot{ width:6px; height:6px; background:var(--rust); border-radius:50%; }
+  .page-head h1{ font-family:'Oswald'; font-weight:600; text-transform:uppercase; font-size:clamp(32px,4vw,50px); line-height:1.05; margin:0 auto 20px; max-width:700px; }
+  .page-head h1 em{ font-style:normal; color:var(--green); }
+  .page-head p{ font-size:16px; color:var(--ink-soft); max-width:480px; margin:0 auto; line-height:1.6; }
+
+  .rates{ padding:76px 0; display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--ink); }
+  .rate-card{ background:var(--white); padding:36px 30px; border-right:1px solid var(--ink); position:relative; }
+  .rate-card:last-child{ border-right:none; }
+  .rate-card.recommended{ background:var(--ink); color:var(--white); }
+  .rate-stamp{ position:absolute; top:26px; right:26px; font-family:'Oswald'; font-weight:700; font-size:11px; color:var(--tag); border:2px solid var(--tag); padding:4px 9px; transform:rotate(-6deg); letter-spacing:0.05em; }
+  .rate-tier{ font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em; color:var(--rust); margin-bottom:16px; }
+  .rate-card.recommended .rate-tier{ color:var(--tag); }
+  .rate-price{ font-family:'Oswald'; font-size:44px; font-weight:600; margin-bottom:2px; }
+  .rate-price sup{ font-size:16px; }
+  .rate-period{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .rate-card.recommended .rate-period{ color:rgba(255,255,255,0.6); }
+  .rate-desc{ font-size:13px; color:var(--ink-soft); margin-bottom:26px; padding-bottom:26px; border-bottom:1px dashed var(--rule); }
+  .rate-card.recommended .rate-desc{ color:rgba(255,255,255,0.7); border-bottom-color:rgba(255,255,255,0.2); }
+  .rate-list{ margin-bottom:30px; }
+  .rate-list div{ display:flex; gap:10px; font-size:13px; padding:8px 0; align-items:flex-start; }
+  .rate-list .mark{ font-family:'IBM Plex Mono'; color:var(--green-soft); font-weight:700; }
+  .rate-card.recommended .rate-list .mark{ color:var(--tag); }
+  .rate-fee{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--rust); margin-bottom:20px; text-transform:uppercase; letter-spacing:0.04em; }
+  .rate-card.recommended .rate-fee{ color:var(--tag); }
+  .rate-btn{ display:block; text-align:center; font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:14px; border:1px solid var(--ink); text-decoration:none; color:var(--ink); }
+  .rate-card.recommended .rate-btn{ background:var(--tag); border-color:var(--tag); color:var(--ink); }
+  .rate-btn:hover{ background:var(--ink); color:var(--white); }
+
+  .schedule{ padding:0 0 80px; }
+  .schedule h3{ font-family:'Oswald'; text-transform:uppercase; font-size:13px; letter-spacing:0.08em; color:var(--ink-soft); margin-bottom:16px; }
+  .schedule-note{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); line-height:1.8; border-top:1px solid var(--rule); padding-top:18px; }
+
+  footer{ padding:60px 32px; text-align:center; border-top:1px solid var(--rule); }
+  footer p{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); }
+
+  @media (max-width:900px){
+    .nav-links{ display:none; }
+    .rates{ grid-template-columns:1fr; }
+    .rate-card{ border-right:none; border-bottom:1px solid var(--ink); }
+    .rate-card:last-child{ border-bottom:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="kazii-redesign.html">
+      <div class="logo-mark">K+</div>
+      <div><div class="logo-text">Kazii+</div><div class="logo-sub">CREATOR MANUFACTURING CO.</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="kazii-redesign.html#manifest">How it works</a>
+      <a href="suppliers.html">Suppliers</a>
+      <a href="creators.html">Creators</a>
+      <a href="pricing.html" class="active">Pricing</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="#" class="btn-stamp">Start a brand →</a>
+    </div>
+  </nav>
+
+  <section class="page-head">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> RATE CARD — EFFECTIVE THIS QUARTER</div>
+    <h1>Three tiers. <em>No hidden line items.</em></h1>
+    <p>Start free. Move up when the volume asks for it. The only thing that changes is the transaction fee.</p>
+  </section>
+
+  <section class="rates">
+    <div class="rate-card">
+      <div class="rate-tier mono">STARTER</div>
+      <div class="rate-price">$0</div>
+      <div class="rate-period">FOREVER</div>
+      <div class="rate-desc">For creators getting started.</div>
+      <div class="rate-list">
+        <div><span class="mark">✓</span><span>1 active product</span></div>
+        <div><span class="mark">✓</span><span>Kazii+ storefront</span></div>
+        <div><span class="mark">✓</span><span>Supplier directory access</span></div>
+        <div><span class="mark">✓</span><span>Basic analytics</span></div>
+        <div><span class="mark">✓</span><span>Secure payments & checkout</span></div>
+      </div>
+      <div class="rate-fee">5–7% transaction fee</div>
+      <a href="#" class="rate-btn">Start free</a>
+    </div>
+
+    <div class="rate-card recommended">
+      <div class="rate-stamp">RECOMMENDED</div>
+      <div class="rate-tier mono">BRAND</div>
+      <div class="rate-price">$79<sup>/mo</sup></div>
+      <div class="rate-period">BILLED MONTHLY</div>
+      <div class="rate-desc">For creators building a real brand.</div>
+      <div class="rate-list">
+        <div><span class="mark">✓</span><span>Unlimited products</span></div>
+        <div><span class="mark">✓</span><span>Custom storefront domain</span></div>
+        <div><span class="mark">✓</span><span>Priority supplier matching</span></div>
+        <div><span class="mark">✓</span><span>Order management dashboard</span></div>
+        <div><span class="mark">✓</span><span>Product customization tools</span></div>
+      </div>
+      <div class="rate-fee">2–3% transaction fee</div>
+      <a href="#" class="rate-btn">Start Brand plan</a>
+    </div>
+
+    <div class="rate-card">
+      <div class="rate-tier mono">STUDIO</div>
+      <div class="rate-price">$299<sup>/mo</sup></div>
+      <div class="rate-period">BILLED MONTHLY</div>
+      <div class="rate-desc">For established creator brands.</div>
+      <div class="rate-list">
+        <div><span class="mark">✓</span><span>Everything in Brand</span></div>
+        <div><span class="mark">✓</span><span>Multi-product collections</span></div>
+        <div><span class="mark">✓</span><span>Advanced revenue analytics</span></div>
+        <div><span class="mark">✓</span><span>Dedicated supplier representative</span></div>
+        <div><span class="mark">✓</span><span>Brand scaling tools</span></div>
+      </div>
+      <div class="rate-fee">0–1% transaction fee</div>
+      <a href="#" class="rate-btn">Start Studio plan</a>
+    </div>
+  </section>
+
+  <section class="schedule">
+    <h3>Fee schedule notes</h3>
+    <div class="schedule-note">
+      01 — Transaction fee scales down with plan tier, not with volume.<br>
+      02 — No listing fees, no affiliate splits, no fulfillment markup.<br>
+      03 — Supplier payment terms are separate and set directly with the manufacturer.
+    </div>
+  </section>
+</div>
+
+<footer>
+  <p>KAZII+ — AN AMETHYST HOLDINGS COMPANY</p>
+</footer>
+</body>
+</html>

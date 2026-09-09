@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17160F; --panel:#1D1B13; --panel-2:#242017; --line:rgba(241,238,228,0.10);
+    --text:#F1EEE4; --text-soft:rgba(241,238,228,0.55);
+    --green:#5C9075; --rust:#D06B4F; --tag:#E3B04B; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; display:flex; min-height:100vh; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  button{ font-family:inherit; }
+
+  .sidebar{ width:236px; background:var(--panel); border-right:1px solid var(--line); flex-shrink:0; padding:24px 18px; display:flex; flex-direction:column; }
+  .logo{ display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 4px; }
+  .logo-mark{ width:30px; height:30px; border:2px solid var(--text); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:13px; transform:rotate(-3deg); flex-shrink:0; }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:16px; text-transform:uppercase; }
+  .profile{ display:flex; align-items:center; gap:10px; padding:12px; background:var(--panel-2); border:1px solid var(--line); margin-bottom:24px; }
+  .avatar{ width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7a5a3a,#3a2e1f); flex-shrink:0; position:relative; }
+  .avatar::after{ content:""; position:absolute; bottom:-1px; right:-1px; width:9px; height:9px; border-radius:50%; background:var(--green); border:2px solid var(--panel-2); }
+  .profile-name{ font-size:13px; font-weight:600; }
+  .profile-role{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--tag); text-transform:uppercase; }
+  nav{ display:flex; flex-direction:column; gap:2px; }
+  nav button, nav a{ display:flex; align-items:center; gap:12px; padding:10px 10px; text-decoration:none; color:var(--text-soft); font-size:13px; font-weight:500; border-left:2px solid transparent; background:none; border-top:none; border-right:none; border-bottom:none; cursor:pointer; text-align:left; width:100%; }
+  nav button .ic, nav a .ic{ width:16px; text-align:center; font-family:'IBM Plex Mono'; font-size:12px; }
+  nav button.active{ color:var(--text); background:var(--panel-2); border-left:2px solid var(--tag); }
+  nav button:hover:not(.active), nav a:hover{ color:var(--text); }
+
+  main{ flex:1; padding:32px 40px; max-width:1360px; }
+  .topbar{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; }
+  .topbar h1{ font-family:'Oswald'; text-transform:uppercase; font-size:26px; margin-bottom:6px; }
+  .topbar p{ font-size:13px; color:var(--text-soft); }
+  .sync-status{ text-align:right; }
+  .sync-status .mono{ font-size:11px; color:var(--text-soft); margin-bottom:10px; display:block; }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:var(--green); color:#0e150f; padding:11px 18px; border:none; cursor:pointer; }
+  .btn-stamp.syncing{ opacity:0.6; cursor:wait; }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px; }
+  .stat-card{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--line); padding:20px; }
+  .stat-card.ok{ border-left-color:var(--green); }
+  .stat-card.warn{ border-left-color:var(--tag); }
+  .stat-card.bad{ border-left-color:var(--rust); }
+  .stat-card .lbl{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-soft); margin-bottom:10px; }
+  .stat-card .num{ font-family:'Oswald'; font-size:34px; font-weight:600; margin-bottom:4px; }
+  .stat-card .sub{ font-size:12px; color:var(--text-soft); }
+
+  .alerts{ background:var(--panel); border:1px solid var(--line); margin-bottom:32px; }
+  .alerts-head{ display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .alerts-head h2{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; display:flex; align-items:center; gap:8px; }
+  .alerts-head .count{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--tag); }
+  .alert-grid{ display:grid; grid-template-columns:repeat(3,1fr); }
+  .alert-ticket{ padding:16px 20px; border-right:1px dashed var(--line); border-bottom:1px dashed var(--line); display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .alert-ticket h4{ font-size:13px; font-weight:600; margin-bottom:6px; }
+  .alert-ticket .supplier-tag{ font-family:'IBM Plex Mono'; font-size:9px; background:var(--panel-2); padding:2px 6px; margin-right:6px; text-transform:uppercase; }
+  .alert-ticket .units{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--text-soft); }
+  .alert-ticket .reorder{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--tag); text-decoration:none; white-space:nowrap; background:none; border:none; cursor:pointer; }
+  .alert-ticket .reorder:disabled{ color:var(--text-soft); cursor:default; text-decoration:line-through; }
+  .dot{ width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px; }
+  .dot.warn{ background:var(--tag); } .dot.bad{ background:var(--rust); }
+
+  .tabs{ display:flex; gap:4px; margin-bottom:16px; }
+  .tab{ font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:9px 16px; background:var(--panel); border:1px solid var(--line); color:var(--text-soft); cursor:pointer; }
+  .tab.active{ background:var(--tag); color:#26200e; border-color:var(--tag); font-weight:600; }
+
+  .placeholder{ background:var(--panel); border:1px solid var(--line); padding:50px 20px; text-align:center; }
+  .placeholder .mono{ font-size:12px; color:var(--text-soft); }
+
+  .table-wrap{ background:var(--panel); border:1px solid var(--line); }
+  .filter-row{ display:flex; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--line); flex-wrap:wrap; gap:10px;}
+  .filter-group{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; padding:6px 11px; border:1px solid var(--line); color:var(--text-soft); cursor:pointer; background:none; }
+  .chip.active{ background:var(--panel-2); color:var(--text); border-color:var(--text-soft); }
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-soft); padding:14px 20px; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; }
+  th:hover{ color:var(--text); }
+  th .arrow{ color:var(--tag); }
+  td{ padding:16px 20px; border-bottom:1px solid var(--line); font-size:13px; }
+  tr:last-child td{ border-bottom:none; }
+  .prod-name{ font-weight:600; margin-bottom:3px; }
+  .prod-sku{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--text-soft); }
+  .supplier-pill{ font-family:'IBM Plex Mono'; font-size:10px; background:var(--panel-2); padding:4px 9px; text-transform:uppercase; }
+  .status-pill{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; padding:4px 9px; display:inline-flex; align-items:center; gap:6px; }
+  .status-pill.ok{ color:var(--green); } .status-pill.warn{ color:var(--tag); } .status-pill.bad{ color:var(--rust); }
+  .status-pill .dot2{ width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .synced{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); }
+  .no-results{ text-align:center; padding:40px; font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-soft); }
+  .result-count{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); padding:12px 20px 0; }
+
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#1D1B13; color:var(--text); font-family:'IBM Plex Mono'; font-size:12px; padding:13px 22px; border:1px solid var(--tag); opacity:0; pointer-events:none; transition:all .3s ease; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="site.html" class="logo" style="text-decoration:none; color:inherit;"><div class="logo-mark">K+</div><div class="logo-text">Kazii+</div></a>
+  <div class="profile">
+    <div class="avatar"></div>
+    <div><div class="profile-name">Jade Williamson</div><div class="profile-role">Beauty Creator</div></div>
+  </div>
+  <nav>
+    <a href="app.html?tab=overview"><span class="ic">◻</span> Overview</a>
+    <a href="app.html?tab=products"><span class="ic">▣</span> Products</a>
+    <a href="app.html?tab=orders"><span class="ic">▤</span> Orders</a>
+    <a href="app.html?tab=storefront"><span class="ic">⌂</span> Storefront</a>
+    <a href="builder.html"><span class="ic">✎</span> Builder</a>
+    <a href="app.html?tab=suppliers"><span class="ic">⌘</span> Suppliers</a>
+    <button class="active"><span class="ic">▦</span> Inventory</button>
+    <a href="app.html?tab=analytics"><span class="ic">▲</span> Analytics</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div>
+      <h1>Inventory Ledger</h1>
+      <p>Live stock levels across all suppliers.</p>
+    </div>
+    <div class="sync-status">
+      <span class="mono" id="syncLabel">LAST SYNC · NEVER</span>
+      <button class="btn-stamp" id="syncBtn" onclick="doSync()">↻ Sync now</button>
+    </div>
+  </div>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="alerts">
+    <div class="alerts-head">
+      <h2>⚠ Low-stock & out-of-stock alerts</h2>
+      <span class="count" id="alertCount">7 ITEMS NEED ATTENTION</span>
+    </div>
+    <div class="alert-grid" id="alertGrid"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="stock" onclick="setInvTab('stock')">Stock Table</div>
+    <div class="tab" data-tab="compare" onclick="setInvTab('compare')">Supplier Comparison</div>
+    <div class="tab" data-tab="trends" onclick="setInvTab('trends')">Trend Graphs</div>
+  </div>
+
+  <div id="stockPane">
+    <div class="table-wrap">
+      <div class="filter-row">
+        <div class="filter-group" id="supplierChips"></div>
+        <div class="filter-group" id="statusChips"></div>
+      </div>
+      <div class="result-count" id="resultCount"></div>
+      <table>
+        <thead>
+          <tr>
+            <th onclick="setSort('name')">Product <span class="arrow" id="arrow-name"></span></th>
+            <th onclick="setSort('supplier')">Supplier <span class="arrow" id="arrow-supplier"></span></th>
+            <th onclick="setSort('qty')">Quantity <span class="arrow" id="arrow-qty"></span></th>
+            <th onclick="setSort('status')">Status <span class="arrow" id="arrow-status"></span></th>
+            <th>Last Synced</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div class="no-results" id="noResults" style="display:none;">No items match these filters.</div>
+    </div>
+  </div>
+
+  <div id="comparePane" style="display:none;">
+    <div class="placeholder"><div class="mono">SUPPLIER COMPARISON — not built in this front-end demo yet.</div></div>
+  </div>
+  <div id="trendsPane" style="display:none;">
+    <div class="placeholder"><div class="mono">TREND GRAPHS — not built in this front-end demo yet.</div></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const ITEMS = [
+    {name:'Classic Unisex Tee — White/M', sku:'PF-001', supplier:'Printful', qty:142},
+    {name:'Premium Hoodie — Black/L', sku:'PF-002', supplier:'Printful', qty:3},
+    {name:'Canvas Tote Bag — Natural', sku:'PF-003', supplier:'Printful', qty:87},
+    {name:'Embroidered Cap — Navy', sku:'PF-004', supplier:'Printful', qty:0},
+    {name:'Poster 50×70 — Glossy', sku:'GEL-001', supplier:'Gelato', qty:0},
+    {name:'Phone Case iPhone 15 — Clear', sku:'GEL-002', supplier:'Gelato', qty:4},
+    {name:'Wireless Earbuds BT5.0', sku:'CJ-001', supplier:'CJ Drop', qty:2},
+    {name:'Bamboo Cutting Board Set', sku:'ALI-001', supplier:'Alibaba', qty:5},
+    {name:'Cotton Drawstring Bag 50pcs', sku:'ALI-002', supplier:'Alibaba', qty:0},
+    {name:'Ceramic Mug 11oz', sku:'GEL-003', supplier:'Gelato', qty:64},
+    {name:'Classic Unisex Tee — Black/L', sku:'PF-005', supplier:'Printful', qty:58},
+    {name:'Scented Candle 8oz', sku:'ALI-003', supplier:'Alibaba', qty:120},
+    {name:'Vitamin C Serum 30ml', sku:'ALI-004', supplier:'Alibaba', qty:36},
+    {name:'Zip Hoodie — Sand/M', sku:'PF-006', supplier:'Printful', qty:19},
+    {name:'Sticker Pack Set of 10', sku:'GEL-004', supplier:'Gelato', qty:210},
+    {name:'Insulated Tumbler 20oz', sku:'CJ-002', supplier:'CJ Drop', qty:8},
+  ].map(i => ({...i, status: i.qty===0?'Out of Stock' : i.qty<=5?'Low Stock' : 'In Stock', synced:'Never'}));
+
+  const SUPPLIERS = ['Printful','Gelato','CJ Drop','Alibaba'];
+  let state = { supplier:'All Suppliers', status:'All Status', sortKey:null, sortDir:1, lastSync:null };
+
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._t);
+    window._t = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+  function navClick(btn,name){ toast(name + ' — switch views in this demo via the sidebar tabs; only Inventory is fully wired up here.'); }
+
+  function statusClass(s){ return s==='In Stock'?'ok':s==='Low Stock'?'warn':'bad'; }
+
+  function renderStats(){
+    const total = ITEMS.length;
+    const inStock = ITEMS.filter(i=>i.status==='In Stock').length;
+    const low = ITEMS.filter(i=>i.status==='Low Stock').length;
+    const out = ITEMS.filter(i=>i.status==='Out of Stock').length;
+    document.getElementById('statRow').innerHTML = `
+      <div class="stat-card"><div class="lbl">Total SKUs</div><div class="num">${total}</div><div class="sub">Across all suppliers</div></div>
+      <div class="stat-card ok"><div class="lbl">In stock</div><div class="num">${inStock}</div><div class="sub">Ready to fulfill</div></div>
+      <div class="stat-card warn"><div class="lbl">Low stock</div><div class="num">${low}</div><div class="sub">Below 5 units</div></div>
+      <div class="stat-card bad"><div class="lbl">Out of stock</div><div class="num">${out}</div><div class="sub">Needs reorder</div></div>
+    `;
+    document.getElementById('alertCount').textContent = (low+out) + ' ITEMS NEED ATTENTION';
+  }
+
+  function renderAlerts(){
+    const alertItems = ITEMS.filter(i=>i.status!=='In Stock').sort((a,b)=>a.qty-b.qty);
+    document.getElementById('alertGrid').innerHTML = alertItems.map(i => `
+      <div class="alert-ticket">
+        <div><h4><span class="dot ${i.status==='Out of Stock'?'bad':'warn'}"></span>${i.name}</h4><span class="supplier-tag">${i.supplier}</span><span class="units">${i.qty} units</span></div>
+        <button class="reorder" onclick="reorder(this,'${i.sku}')">Reorder →</button>
+      </div>`).join('');
+  }
+  function reorder(btn, sku){
+    btn.disabled = true;
+    btn.textContent = 'Requested ✓';
+    toast('Reorder request sent for ' + sku + ' (demo only — no supplier connection)');
+  }
+
+  function renderChips(){
+    const sHTML = ['All Suppliers', ...SUPPLIERS].map(s => `<div class="chip ${state.supplier===s?'active':''}" onclick="setSupplier('${s}')">${s}</div>`).join('');
+    document.getElementById('supplierChips').innerHTML = sHTML;
+    const stHTML = ['All Status','In Stock','Low Stock','Out of Stock'].map(s => `<div class="chip ${state.status===s?'active':''}" onclick="setStatus('${s}')">${s}</div>`).join('');
+    document.getElementById('statusChips').innerHTML = stHTML;
+  }
+  function setSupplier(s){ state.supplier = s; renderChips(); renderTable(); }
+  function setStatus(s){ state.status = s; renderChips(); renderTable(); }
+
+  function setSort(key){
+    if(state.sortKey===key) state.sortDir *= -1;
+    else { state.sortKey = key; state.sortDir = 1; }
+    ['name','supplier','qty','status'].forEach(k => document.getElementById('arrow-'+k).textContent = '');
+    document.getElementById('arrow-'+key).textContent = state.sortDir===1 ? '↑' : '↓';
+    renderTable();
+  }
+
+  function getFiltered(){
+    let list = ITEMS.filter(i =>
+      (state.supplier==='All Suppliers' || i.supplier===state.supplier) &&
+      (state.status==='All Status' || i.status===state.status)
+    );
+    if(state.sortKey){
+      list = [...list].sort((a,b) => {
+        let av=a[state.sortKey], bv=b[state.sortKey];
+        if(typeof av==='string'){ av=av.toLowerCase(); bv=bv.toLowerCase(); }
+        return av>bv ? state.sortDir : av<bv ? -state.sortDir : 0;
+      });
+    }
+    return list;
+  }
+
+  function renderTable(){
+    const list = getFiltered();
+    document.getElementById('resultCount').textContent = `${list.length} of ${ITEMS.length} SKUs shown`;
+    document.getElementById('noResults').style.display = list.length ? 'none' : 'block';
+    document.getElementById('tableBody').innerHTML = list.map(i => `
+      <tr>
+        <td><div class="prod-name">${i.name}</div><div class="prod-sku">${i.sku}</div></td>
+        <td><span class="supplier-pill">${i.supplier}</span></td>
+        <td class="mono">${i.qty}</td>
+        <td><span class="status-pill ${statusClass(i.status)}"><span class="dot2"></span>${i.status}</span></td>
+        <td class="synced">${i.synced}</td>
+      </tr>`).join('');
+  }
+
+  function setInvTab(tab){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+    document.getElementById('stockPane').style.display = tab==='stock' ? 'block' : 'none';
+    document.getElementById('comparePane').style.display = tab==='compare' ? 'block' : 'none';
+    document.getElementById('trendsPane').style.display = tab==='trends' ? 'block' : 'none';
+  }
+
+  function doSync(){
+    const btn = document.getElementById('syncBtn');
+    btn.classList.add('syncing');
+    btn.textContent = '↻ Syncing…';
+    setTimeout(()=>{
+      const now = new Date();
+      const label = now.toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'});
+      document.getElementById('syncLabel').textContent = 'LAST SYNC · ' + label;
+      ITEMS.forEach(i => i.synced = label);
+      btn.classList.remove('syncing');
+      btn.innerHTML = '↻ Sync now';
+      renderTable();
+      toast(`Synced ${ITEMS.length} SKUs across ${SUPPLIERS.length} suppliers`);
+    }, 900);
+  }
+
+  renderStats(); renderAlerts(); renderChips(); renderTable();
+</script>
+</body>
+</html>

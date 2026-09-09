@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Suppliers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE4; --paper-dark:#E6E1D2; --ink:#1C1B18; --ink-soft:#54503f;
+    --rule:#B9AF98; --green:#2B4636; --green-soft:#3E6349; --rust:#B5432E; --tag:#D9A441; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  .display{ font-family:'Oswald', sans-serif; text-transform:uppercase; }
+  body::before{ content:""; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, rgba(28,27,24,0.05) 1px, transparent 0); background-size:22px 22px; pointer-events:none; z-index:0; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+
+  nav{ display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--rule); }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; }
+  .logo-mark{ width:34px; height:34px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:15px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:20px; text-transform:uppercase; }
+  .logo-sub{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); letter-spacing:0.08em; margin-top:2px;}
+  .nav-links{ display:flex; gap:36px; }
+  .nav-links a{ color:var(--ink); text-decoration:none; font-size:14px; font-weight:500; position:relative; padding-bottom:3px; }
+  .nav-links a.active{ color:var(--green); font-weight:600; }
+  .nav-links a::after{ content:""; position:absolute; left:0; bottom:0; width:0; height:1px; background:var(--green); transition:width .25s ease; }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-cta{ display:flex; align-items:center; gap:20px; }
+  .btn-ghost{ font-size:14px; color:var(--ink); text-decoration:none; }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; background:var(--green); color:var(--white); padding:11px 20px; border:1px solid var(--ink); text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:transform .15s ease; }
+  .btn-stamp:hover{ transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--ink); }
+
+  .page-head{ padding:70px 0 50px; border-bottom:1px solid var(--rule); }
+  .eyebrow{ display:inline-flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em; color:var(--ink-soft); border:1px solid var(--rule); padding:6px 12px; margin-bottom:24px; background:var(--white); }
+  .eyebrow-dot{ width:6px; height:6px; background:var(--rust); border-radius:50%; }
+  .page-head h1{ font-family:'Oswald'; font-weight:600; text-transform:uppercase; font-size:clamp(32px,4vw,50px); line-height:1.05; margin-bottom:20px; max-width:780px; }
+  .page-head h1 em{ font-style:normal; color:var(--green); }
+  .page-head p{ font-size:16px; color:var(--ink-soft); max-width:560px; line-height:1.6; }
+
+  .content{ padding:70px 0; display:grid; grid-template-columns:0.85fr 1.15fr; gap:56px; }
+  .side h2{ font-family:'Oswald'; text-transform:uppercase; font-size:24px; margin-bottom:18px; }
+  .side p{ font-size:14px; color:var(--ink-soft); line-height:1.65; margin-bottom:28px; }
+  .checklist{ border-top:1px solid var(--ink); }
+  .checklist-item{ display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--rule); align-items:flex-start; }
+  .checklist-item .mark{ font-family:'IBM Plex Mono'; color:var(--green); font-weight:700; }
+  .checklist-item span{ font-size:14px; }
+  .btn-outline{ margin-top:28px; display:inline-block; font-family:'IBM Plex Mono'; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink); border:1px solid var(--ink); padding:14px 22px; text-decoration:none; }
+  .btn-outline:hover{ background:var(--ink); color:var(--white); }
+
+  .dossier-list{ display:flex; flex-direction:column; gap:18px; }
+  .dossier{ background:var(--white); border:1px solid var(--ink); display:grid; grid-template-columns:64px 1fr auto; gap:20px; padding:20px; align-items:center; }
+  .dossier-thumb{ width:64px; height:64px; background:var(--paper-dark); border:1px solid var(--rule); }
+  .dossier h3{ font-family:'Oswald'; text-transform:uppercase; font-size:17px; margin-bottom:4px; display:flex; align-items:center; gap:10px;}
+  .verified{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--green); border:1px solid var(--green); padding:2px 7px; letter-spacing:0.04em; }
+  .dossier .meta{ font-size:13px; color:var(--ink-soft); margin-bottom:8px; }
+  .dossier .tags{ display:flex; gap:8px; }
+  .dossier .tags span{ font-family:'IBM Plex Mono'; font-size:10px; background:var(--paper-dark); padding:3px 8px; letter-spacing:0.03em; }
+  .dossier .stats{ text-align:right; font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft); }
+  .dossier .stats b{ display:block; font-family:'Oswald'; font-size:16px; color:var(--ink); }
+  .more-note{ text-align:center; padding:24px 0; font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); }
+
+  footer{ padding:60px 32px; text-align:center; border-top:1px solid var(--rule); }
+  footer p{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-soft); }
+
+  @media (max-width:900px){
+    .nav-links{ display:none; }
+    .content{ grid-template-columns:1fr; }
+    .dossier{ grid-template-columns:52px 1fr; }
+    .dossier .stats{ grid-column:1/-1; text-align:left; margin-top:8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a class="logo" href="kazii-redesign.html">
+      <div class="logo-mark">K+</div>
+      <div><div class="logo-text">Kazii+</div><div class="logo-sub">CREATOR MANUFACTURING CO.</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="kazii-redesign.html#manifest">How it works</a>
+      <a href="suppliers.html" class="active">Suppliers</a>
+      <a href="creators.html">Creators</a>
+      <a href="pricing.html">Pricing</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="#" class="btn-stamp">Start a brand →</a>
+    </div>
+  </nav>
+
+  <section class="page-head">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> SUPPLIER NETWORK — DOSSIER 340</div>
+    <h1>340+ verified manufacturers.<br><em>Zero cold emails.</em></h1>
+    <p>Every supplier on Kazii+ is vetted for quality, reliability, and creator-friendly minimums before they're listed. No NDAs, no guesswork — just an MOQ and a lead time you can plan around.</p>
+  </section>
+
+  <section class="content">
+    <div class="side">
+      <h2>What "verified" means</h2>
+      <p>We check production capacity, sample quality, and past creator orders before a supplier gets the mark. If something changes — an MOQ shifts, a lead time slips — it shows up here first.</p>
+      <div class="checklist">
+        <div class="checklist-item"><span class="mark">✓</span><span>Verified quality standards</span></div>
+        <div class="checklist-item"><span class="mark">✓</span><span>Transparent lead times, updated weekly</span></div>
+        <div class="checklist-item"><span class="mark">✓</span><span>Low MOQs built for first-time brands</span></div>
+        <div class="checklist-item"><span class="mark">✓</span><span>Direct messaging — no broker in between</span></div>
+      </div>
+      <a href="#" class="btn-outline">Join as a supplier →</a>
+    </div>
+
+    <div class="dossier-list">
+      <div class="dossier">
+        <div class="dossier-thumb"></div>
+        <div>
+          <h3>PureForm Labs <span class="verified">VERIFIED</span></h3>
+          <div class="meta">Skincare & Cosmetics · South Korea</div>
+          <div class="tags"><span>Serums</span><span>Moisturizers</span><span>SPF</span></div>
+        </div>
+        <div class="stats"><b>500u</b>MOQ<br>18 days lead</div>
+      </div>
+      <div class="dossier">
+        <div class="dossier-thumb"></div>
+        <div>
+          <h3>NutraSource Co. <span class="verified">VERIFIED</span></h3>
+          <div class="meta">Supplements & Wellness · USA</div>
+          <div class="tags"><span>Capsules</span><span>Powders</span><span>Gummies</span></div>
+        </div>
+        <div class="stats"><b>250u</b>MOQ<br>14 days lead</div>
+      </div>
+      <div class="dossier">
+        <div class="dossier-thumb"></div>
+        <div>
+          <h3>ThreadCraft Studio <span class="verified">VERIFIED</span></h3>
+          <div class="meta">Apparel & Accessories · Portugal</div>
+          <div class="tags"><span>Tees</span><span>Hoodies</span><span>Hats</span></div>
+        </div>
+        <div class="stats"><b>100u</b>MOQ<br>21 days lead</div>
+      </div>
+      <div class="dossier">
+        <div class="dossier-thumb"></div>
+        <div>
+          <h3>GlassHouse Goods <span class="verified">VERIFIED</span></h3>
+          <div class="meta">Home & Lifestyle · China</div>
+          <div class="tags"><span>Candles</span><span>Diffusers</span><span>Ceramics</span></div>
+        </div>
+        <div class="stats"><b>200u</b>MOQ<br>25 days lead</div>
+      </div>
+      <div class="more-note">+ 336 more verified suppliers across 18 categories</div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <p>KAZII+ — AN AMETHYST HOLDINGS COMPANY</p>
+</footer>
+</body>
+</html>

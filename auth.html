@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1EEE4; --paper-dark:#E6E1D2; --ink:#1C1B18; --ink-soft:#54503f;
+    --rule:#B9AF98; --green:#2B4636; --green-soft:#3E6349; --rust:#B5432E; --tag:#D9A441; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  body::before{ content:""; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, rgba(28,27,24,0.05) 1px, transparent 0); background-size:22px 22px; pointer-events:none; z-index:0; }
+  button, input{ font-family:inherit; }
+  a{ color:inherit; }
+
+  .topbar{ padding:26px 32px; border-bottom:1px solid var(--rule); position:relative; z-index:1; }
+  .logo{ display:flex; align-items:center; gap:10px; text-decoration:none; color:inherit; width:fit-content; }
+  .logo-mark{ width:34px; height:34px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:15px; transform:rotate(-3deg); }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:20px; text-transform:uppercase; }
+  .logo-sub{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); letter-spacing:0.08em; margin-top:2px;}
+
+  .layout{ display:flex; min-height:calc(100vh - 89px); position:relative; z-index:1; }
+  .brand-side{ flex:1; padding:70px 60px; display:flex; flex-direction:column; justify-content:center; max-width:520px; }
+  .brand-side .eyebrow{ display:inline-flex; align-items:center; gap:10px; font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.1em; color:var(--ink-soft); border:1px solid var(--rule); padding:6px 12px; margin-bottom:24px; background:var(--white); width:fit-content;}
+  .eyebrow-dot{ width:6px; height:6px; background:var(--rust); border-radius:50%; }
+  .brand-side h1{ font-family:'Oswald'; text-transform:uppercase; font-weight:600; font-size:clamp(28px,3.4vw,40px); line-height:1.1; margin-bottom:20px; }
+  .brand-side h1 em{ font-style:normal; color:var(--green); }
+  .brand-side p{ font-size:15px; color:var(--ink-soft); line-height:1.6; margin-bottom:36px; max-width:400px; }
+  .manifest-mini{ border-top:1px solid var(--ink); }
+  .manifest-mini-item{ display:flex; gap:16px; padding:16px 0; border-bottom:1px solid var(--rule); align-items:flex-start; }
+  .manifest-mini-item .line-no{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--rust); font-weight:600; padding-top:2px; width:44px; flex-shrink:0;}
+  .manifest-mini-item div p{ font-size:13px; color:var(--ink-soft); margin:0; max-width:none;}
+  .manifest-mini-item h4{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; margin-bottom:3px; }
+
+  .form-side{ width:460px; flex-shrink:0; background:var(--white); border-left:1px solid var(--rule); padding:60px 48px; display:flex; flex-direction:column; justify-content:center; }
+  .tabs{ display:flex; border:1px solid var(--ink); margin-bottom:32px; }
+  .tab-btn{ flex:1; padding:13px; background:none; border:none; font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer; color:var(--ink-soft); }
+  .tab-btn.active{ background:var(--ink); color:var(--white); }
+  .plan-note{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--green-soft); border:1px solid var(--green); padding:10px 12px; margin-bottom:22px; display:none; }
+  .plan-note.show{ display:block; }
+  .field{ margin-bottom:18px; }
+  .field label{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); display:block; margin-bottom:7px; }
+  .field input{ width:100%; padding:12px 13px; border:1px solid var(--rule); background:var(--paper); font-size:14px; }
+  .field input:focus{ outline:none; border-color:var(--ink); }
+  .field input.err{ border-color:var(--rust); }
+  .field .err-msg{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--rust); margin-top:6px; display:none; }
+  .field .err-msg.show{ display:block; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .btn-primary{ width:100%; font-family:'IBM Plex Mono'; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:var(--ink); color:var(--white); padding:15px; border:1px solid var(--ink); cursor:pointer; margin-top:6px; }
+  .btn-primary:hover{ transform:translate(-2px,-2px); box-shadow:3px 3px 0 var(--green); }
+  .btn-primary:disabled{ opacity:0.6; cursor:wait; transform:none; box-shadow:none; }
+  .forgot{ text-align:right; margin-bottom:18px; margin-top:-8px; }
+  .forgot button{ background:none; border:none; font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-soft); cursor:pointer; text-decoration:underline; }
+  .divider-row{ display:flex; align-items:center; gap:14px; margin:26px 0; }
+  .divider-row .line{ flex:1; height:1px; background:var(--rule); }
+  .divider-row span{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); text-transform:uppercase; }
+  .social-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:24px;}
+  .social-btn{ padding:12px; border:1px solid var(--rule); background:var(--paper); font-family:'IBM Plex Mono'; font-size:11px; text-transform:uppercase; cursor:pointer; }
+  .social-btn:hover{ border-color:var(--ink); }
+  .switch-note{ text-align:center; font-size:13px; color:var(--ink-soft); }
+  .switch-note button{ background:none; border:none; color:var(--green-soft); font-weight:600; cursor:pointer; text-decoration:underline; font-family:'Work Sans'; font-size:13px; }
+  .demo-note{ margin-top:28px; font-family:'IBM Plex Mono'; font-size:10px; color:var(--ink-soft); line-height:1.6; border-top:1px dashed var(--rule); padding-top:16px; }
+
+  .type-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:20px; }
+  .type-tile{ border:1px solid var(--rule); background:var(--paper); padding:12px 10px; text-align:left; cursor:pointer; font-family:inherit; }
+  .type-tile.active{ border-color:var(--ink); background:var(--white); box-shadow:2px 2px 0 var(--green); }
+  .type-tile-label{ font-family:'Oswald'; text-transform:uppercase; font-size:12.5px; font-weight:600; color:var(--ink); }
+  .type-tile-sub{ font-family:'IBM Plex Mono'; font-size:9px; color:var(--ink-soft); margin-top:3px; }
+  .type-tile.active .type-tile-label{ color:var(--green-soft); }
+  select{ width:100%; padding:12px 13px; border:1px solid var(--rule); background:var(--paper); font-size:14px; font-family:inherit; color:var(--ink); }
+  .form-panel{ display:none; }
+  .form-panel.active{ display:block; }
+
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:var(--white); font-family:'IBM Plex Mono'; font-size:12px; padding:13px 22px; border:1px solid var(--tag); opacity:0; pointer-events:none; transition:all .3s ease; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:900px){
+    .layout{ flex-direction:column; }
+    .brand-side{ padding:40px 28px; max-width:none; }
+    .form-side{ width:auto; border-left:none; border-top:1px solid var(--rule); padding:40px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="site.html">
+    <div class="logo-mark">K+</div>
+    <div><div class="logo-text">Kazii+</div><div class="logo-sub">CREATOR MANUFACTURING CO.</div></div>
+  </a>
+</div>
+
+<div class="layout">
+  <div class="brand-side">
+    <div class="eyebrow"><span class="eyebrow-dot"></span> ACCOUNT ACCESS</div>
+    <h1>One account.<br>Every <em>docket</em> you open.</h1>
+    <p>Sign in to manage products, orders, your storefront, and supplier connections from one workspace.</p>
+    <div class="manifest-mini">
+      <div class="manifest-mini-item">
+        <div class="line-no">01</div>
+        <div><h4>Build</h4><p>Spec products with the builder and a verified manufacturer.</p></div>
+      </div>
+      <div class="manifest-mini-item">
+        <div class="line-no">02</div>
+        <div><h4>Launch</h4><p>Push products live to a storefront built for your audience.</p></div>
+      </div>
+      <div class="manifest-mini-item">
+        <div class="line-no">03</div>
+        <div><h4>Get paid</h4><p>Track orders and revenue as they come in, in real time.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-side">
+    <div class="tabs">
+      <button class="tab-btn" id="tabSignin" onclick="setMode('signin')">Sign in</button>
+      <button class="tab-btn" id="tabSignup" onclick="setMode('signup')">Sign up</button>
+    </div>
+
+    <div class="plan-note" id="planNote"></div>
+
+    <!-- SIGN IN -->
+    <div class="form-panel" id="panelSignin">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="si-email" placeholder="you@studio.com">
+        <div class="err-msg" id="si-email-err">Enter a valid email address.</div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="si-password" placeholder="••••••••">
+        <div class="err-msg" id="si-password-err">Password is required.</div>
+      </div>
+      <div class="forgot"><button onclick="toast('Password reset isn\'t wired up in this demo')">Forgot password?</button></div>
+      <button class="btn-primary" id="signinBtn" onclick="submitSignin()">Sign in →</button>
+    </div>
+
+    <!-- SIGN UP -->
+    <div class="form-panel" id="panelSignup">
+      <div class="field">
+        <label>I'm signing up as</label>
+        <div class="type-row" id="typeRow">
+          <button type="button" class="type-tile active" data-type="creator" onclick="setSignupType('creator')">
+            <div class="type-tile-label">Creator</div>
+            <div class="type-tile-sub">Launch a brand</div>
+          </button>
+          <button type="button" class="type-tile" data-type="supplier" onclick="setSignupType('supplier')">
+            <div class="type-tile-label">Supplier</div>
+            <div class="type-tile-sub">List products</div>
+          </button>
+          <button type="button" class="type-tile" data-type="manufacturer" onclick="setSignupType('manufacturer')">
+            <div class="type-tile-label">Manufacturer</div>
+            <div class="type-tile-sub">Offer production</div>
+          </button>
+        </div>
+      </div>
+
+      <div id="fields-creator">
+        <div class="row2">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" id="su-first" placeholder="Jade">
+            <div class="err-msg" id="su-first-err">Required.</div>
+          </div>
+          <div class="field">
+            <label>Brand name</label>
+            <input type="text" id="su-brand" placeholder="Optional">
+          </div>
+        </div>
+      </div>
+
+      <div id="fields-supplier" style="display:none;">
+        <div class="field">
+          <label>Company name</label>
+          <input type="text" id="su-supplier-company" placeholder="PureForm Labs">
+          <div class="err-msg" id="su-supplier-company-err">Required.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Product category</label>
+            <select id="su-supplier-category">
+              <option>Skincare</option><option>Supplements</option><option>Apparel</option><option>Home</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Country</label>
+            <input type="text" id="su-supplier-country" placeholder="South Korea">
+          </div>
+        </div>
+      </div>
+
+      <div id="fields-manufacturer" style="display:none;">
+        <div class="field">
+          <label>Company name</label>
+          <input type="text" id="su-mfg-company" placeholder="GlassHouse Goods">
+          <div class="err-msg" id="su-mfg-company-err">Required.</div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Manufacturing specialty</label>
+            <select id="su-mfg-specialty">
+              <option>Skincare</option><option>Supplements</option><option>Apparel</option><option>Home</option><option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Country</label>
+            <input type="text" id="su-mfg-country" placeholder="Portugal">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Typical MOQ (units)</label>
+            <input type="number" id="su-mfg-moq" placeholder="250">
+          </div>
+          <div class="field">
+            <label>Typical lead time (days)</label>
+            <input type="number" id="su-mfg-lead" placeholder="18">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="su-email" placeholder="you@studio.com">
+        <div class="err-msg" id="su-email-err">Enter a valid email address.</div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="su-password" placeholder="At least 8 characters">
+        <div class="err-msg" id="su-password-err">Use at least 8 characters.</div>
+      </div>
+      <div class="field">
+        <label>Confirm password</label>
+        <input type="password" id="su-confirm" placeholder="••••••••">
+        <div class="err-msg" id="su-confirm-err">Passwords don't match.</div>
+      </div>
+      <button class="btn-primary" id="signupBtn" onclick="submitSignup()">Create account →</button>
+    </div>
+
+    <div class="divider-row"><div class="line"></div><span>or</span><div class="line"></div></div>
+    <div class="social-row">
+      <button class="social-btn" onclick="toast('Google sign-in isn\'t wired up in this demo')">Google</button>
+      <button class="social-btn" onclick="toast('Instagram sign-in isn\'t wired up in this demo')">Instagram</button>
+    </div>
+
+    <div class="switch-note" id="switchNote"></div>
+
+    <div class="demo-note">This is a front-end demo with no backend — any email and an 8+ character password will work. Nothing is stored.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._t);
+    window._t = setTimeout(()=>t.classList.remove('show'), 2600);
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const planParam = params.get('plan');
+  const planNames = {starter:'Starter (Free)', brand:'Brand ($79/mo)', studio:'Studio ($299/mo)'};
+
+  function setMode(mode){
+    document.getElementById('tabSignin').classList.toggle('active', mode==='signin');
+    document.getElementById('tabSignup').classList.toggle('active', mode==='signup');
+    document.getElementById('panelSignin').classList.toggle('active', mode==='signin');
+    document.getElementById('panelSignup').classList.toggle('active', mode==='signup');
+    document.getElementById('switchNote').innerHTML = mode==='signin'
+      ? `New to Kazii+? <button onclick="setMode('signup')">Create an account</button>`
+      : `Already have an account? <button onclick="setMode('signin')">Sign in</button>`;
+    document.getElementById('planNote').classList.toggle('show', mode==='signup' && !!planParam && !!planNames[planParam]);
+    if(mode==='signup' && planParam && planNames[planParam]){
+      document.getElementById('planNote').textContent = `Signing up for the ${planNames[planParam]} plan.`;
+    }
+  }
+
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function setErr(inputId, errId, show){
+    document.getElementById(inputId).classList.toggle('err', show);
+    document.getElementById(errId).classList.toggle('show', show);
+  }
+
+  function submitSignin(){
+    const email = document.getElementById('si-email').value.trim();
+    const pass = document.getElementById('si-password').value;
+    const emailOk = validEmail(email);
+    const passOk = pass.length > 0;
+    setErr('si-email','si-email-err', !emailOk);
+    setErr('si-password','si-password-err', !passOk);
+    if(!emailOk || !passOk) return;
+    const btn = document.getElementById('signinBtn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    setTimeout(()=>{ window.location.href = 'app.html'; }, 700);
+  }
+
+  let signupType = 'creator';
+  function setSignupType(type){
+    signupType = type;
+    document.querySelectorAll('.type-tile').forEach(t => t.classList.toggle('active', t.dataset.type===type));
+    document.getElementById('fields-creator').style.display = type==='creator' ? 'block' : 'none';
+    document.getElementById('fields-supplier').style.display = type==='supplier' ? 'block' : 'none';
+    document.getElementById('fields-manufacturer').style.display = type==='manufacturer' ? 'block' : 'none';
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = type==='creator' ? 'Create account →' : type==='supplier' ? 'Submit supplier application →' : 'Submit manufacturer application →';
+    document.getElementById('planNote').classList.toggle('show', type==='creator' && !!planParam && !!planNames[planParam]);
+  }
+
+  function submitSignup(){
+    const email = document.getElementById('su-email').value.trim();
+    const pass = document.getElementById('su-password').value;
+    const confirm = document.getElementById('su-confirm').value;
+    const emailOk = validEmail(email);
+    const passOk = pass.length >= 8;
+    const confirmOk = confirm === pass && passOk;
+    setErr('su-email','su-email-err', !emailOk);
+    setErr('su-password','su-password-err', !passOk);
+    setErr('su-confirm','su-confirm-err', !confirmOk);
+
+    let typeOk = true, name = '';
+    if(signupType === 'creator'){
+      const first = document.getElementById('su-first').value.trim();
+      typeOk = first.length > 0;
+      setErr('su-first','su-first-err', !typeOk);
+      name = first;
+    } else if(signupType === 'supplier'){
+      const company = document.getElementById('su-supplier-company').value.trim();
+      typeOk = company.length > 0;
+      setErr('su-supplier-company','su-supplier-company-err', !typeOk);
+      name = company;
+    } else if(signupType === 'manufacturer'){
+      const company = document.getElementById('su-mfg-company').value.trim();
+      typeOk = company.length > 0;
+      setErr('su-mfg-company','su-mfg-company-err', !typeOk);
+      name = company;
+    }
+
+    if(!typeOk || !emailOk || !passOk || !confirmOk) return;
+    const btn = document.getElementById('signupBtn');
+    btn.disabled = true;
+    if(signupType === 'creator'){
+      btn.textContent = 'Creating account…';
+      toast(`Welcome, ${name} — setting up your workspace`);
+      setTimeout(()=>{ window.location.href = 'app.html'; }, 900);
+    } else {
+      btn.textContent = 'Submitting…';
+      toast(`Application received — thanks, ${name}. Our team will follow up by email.`);
+      setTimeout(()=>{ window.location.href = 'site.html'; }, 1200);
+    }
+  }
+
+  setMode(params.get('mode')==='signup' ? 'signup' : 'signin');
+</script>
+</body>
+</html>

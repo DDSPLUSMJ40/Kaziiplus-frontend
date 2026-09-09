@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kazii+ — Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17160F; --panel:#1D1B13; --panel-2:#242017; --line:rgba(241,238,228,0.10);
+    --text:#F1EEE4; --text-soft:rgba(241,238,228,0.55);
+    --green:#5C9075; --rust:#D06B4F; --tag:#E3B04B; --white:#FBFAF6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'Work Sans', sans-serif; -webkit-font-smoothing:antialiased; display:flex; height:100vh; overflow:hidden; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.03em; }
+  button, input, select{ font-family:inherit; }
+  a{ color:inherit; }
+
+  .sidebar{ width:236px; background:var(--panel); border-right:1px solid var(--line); flex-shrink:0; padding:24px 18px; display:flex; flex-direction:column; }
+  .logo{ display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 4px; }
+  .logo-mark{ width:30px; height:30px; border:2px solid var(--text); display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-weight:700; font-size:13px; transform:rotate(-3deg); flex-shrink:0; }
+  .logo-text{ font-family:'Oswald'; font-weight:600; font-size:16px; text-transform:uppercase; }
+  .profile{ display:flex; align-items:center; gap:10px; padding:12px; background:var(--panel-2); border:1px solid var(--line); margin-bottom:24px; }
+  .avatar{ width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7a5a3a,#3a2e1f); flex-shrink:0; position:relative; }
+  .avatar::after{ content:""; position:absolute; bottom:-1px; right:-1px; width:9px; height:9px; border-radius:50%; background:var(--green); border:2px solid var(--panel-2); }
+  .profile-name{ font-size:13px; font-weight:600; }
+  .profile-role{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--tag); text-transform:uppercase; }
+  nav{ display:flex; flex-direction:column; gap:2px; }
+  nav button, nav a{ display:flex; align-items:center; gap:12px; padding:10px 10px; text-decoration:none; color:var(--text-soft); font-size:13px; font-weight:500; border-left:2px solid transparent; background:none; border-top:none; border-right:none; border-bottom:none; cursor:pointer; text-align:left; width:100%; }
+  nav button .ic, nav a .ic{ width:16px; text-align:center; font-family:'IBM Plex Mono'; font-size:12px; }
+  nav button.active{ color:var(--text); background:var(--panel-2); border-left:2px solid var(--tag); }
+  nav button:hover:not(.active), nav a:hover{ color:var(--text); }
+  nav .ext::after{ content:"↗"; margin-left:auto; font-size:10px; color:var(--text-soft); }
+
+  .content-area{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .tabpanel{ display:none; flex:1; overflow-y:auto; }
+  .tabpanel.active{ display:block; }
+  .page{ padding:32px 40px; max-width:1360px; }
+  .topbar{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:28px; flex-wrap:wrap; gap:14px;}
+  .topbar h1{ font-family:'Oswald'; text-transform:uppercase; font-size:26px; margin-bottom:6px; }
+  .topbar p{ font-size:13px; color:var(--text-soft); }
+  .btn-stamp{ font-family:'IBM Plex Mono'; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:var(--tag); color:#26200e; padding:11px 18px; border:none; cursor:pointer; }
+  .btn-stamp.green{ background:var(--green); color:#0e150f; }
+  .btn-outline{ font-family:'IBM Plex Mono'; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; background:none; color:var(--text); padding:10px 16px; border:1px solid var(--line); cursor:pointer; }
+  .btn-outline:hover{ border-color:var(--tag); color:var(--tag); }
+
+  /* stat cards, shared */
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+  .stat-card{ background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--line); padding:20px; }
+  .stat-card.ok{ border-left-color:var(--green); } .stat-card.warn{ border-left-color:var(--tag); } .stat-card.bad{ border-left-color:var(--rust); }
+  .stat-card .lbl{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-soft); margin-bottom:10px; }
+  .stat-card .num{ font-family:'Oswald'; font-size:30px; font-weight:600; margin-bottom:4px; }
+  .stat-card .sub{ font-size:12px; color:var(--text-soft); }
+
+  .panel-box{ background:var(--panel); border:1px solid var(--line); margin-bottom:24px; }
+  .panel-box-head{ display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .panel-box-head h2{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; }
+
+  .activity-row{ display:flex; justify-content:space-between; padding:14px 20px; border-bottom:1px dashed var(--line); font-size:13px; align-items:center; }
+  .activity-row:last-child{ border-bottom:none; }
+  .activity-row .who{ color:var(--text-soft); font-family:'IBM Plex Mono'; font-size:11px; }
+  .activity-row .amt{ font-family:'IBM Plex Mono'; font-weight:600; }
+
+  .quick-actions{ display:flex; gap:12px; flex-wrap:wrap; }
+
+  /* tables shared */
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-soft); padding:14px 20px; border-bottom:1px solid var(--line); }
+  td{ padding:15px 20px; border-bottom:1px solid var(--line); font-size:13px; }
+  tr:last-child td{ border-bottom:none; }
+  .table-wrap{ background:var(--panel); border:1px solid var(--line); }
+  .filter-row{ display:flex; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--line); flex-wrap:wrap; gap:10px; align-items:center;}
+  .filter-group{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; padding:6px 11px; border:1px solid var(--line); color:var(--text-soft); cursor:pointer; background:none; }
+  .chip.active{ background:var(--panel-2); color:var(--text); border-color:var(--text-soft); }
+  .status-pill{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; padding:4px 9px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; border:none; }
+  .status-pill.ok{ color:var(--green); background:rgba(92,144,117,0.12);} .status-pill.warn{ color:var(--tag); background:rgba(227,176,75,0.12);} .status-pill.bad{ color:var(--rust); background:rgba(208,107,79,0.12);}
+  .status-pill .dot2{ width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .row-actions{ display:flex; gap:10px; }
+  .link-btn{ font-family:'IBM Plex Mono'; font-size:11px; background:none; border:none; color:var(--tag); cursor:pointer; }
+  .link-btn.danger{ color:var(--text-soft); }
+  .link-btn.danger:hover{ color:var(--rust); }
+  .link-btn:disabled{ color:var(--text-soft); cursor:default; }
+
+  /* products form */
+  .inline-form{ display:none; padding:18px 20px; border-bottom:1px solid var(--line); background:var(--panel-2); gap:12px; align-items:flex-end; flex-wrap:wrap; }
+  .inline-form.open{ display:flex; }
+  .form-field{ display:flex; flex-direction:column; gap:6px; }
+  .form-field label{ font-family:'IBM Plex Mono'; font-size:9px; text-transform:uppercase; color:var(--text-soft); }
+  .form-field input, .form-field select{ background:var(--panel); border:1px solid var(--line); color:var(--text); padding:9px 10px; font-size:13px; min-width:150px; }
+
+  /* storefront preview */
+  .storefront-toggle{ display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .switch{ width:42px; height:22px; background:var(--line); border-radius:20px; position:relative; cursor:pointer; border:none; }
+  .switch.on{ background:var(--green); }
+  .switch::after{ content:""; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--white); transition:transform .2s ease; }
+  .switch.on::after{ transform:translateX(20px); }
+  .storefront-offline{ background:var(--panel); border:1px solid var(--line); padding:60px; text-align:center; }
+  .storefront-offline .mono{ font-size:12px; color:var(--text-soft); }
+  .store-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .store-card{ background:var(--panel); border:1px solid var(--line); padding:18px; }
+  .store-card .thumb{ width:100%; aspect-ratio:1; background:var(--panel-2); margin-bottom:14px; }
+  .store-card h4{ font-size:14px; margin-bottom:4px; }
+  .store-card .cat{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--text-soft); text-transform:uppercase; margin-bottom:10px; }
+  .store-card .row{ display:flex; justify-content:space-between; align-items:center; }
+  .store-card .price{ font-family:'Oswald'; font-size:17px; }
+  .store-card button{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:8px 12px; cursor:pointer; }
+  .store-card button:hover{ border-color:var(--tag); color:var(--tag); }
+  .link-row{ display:flex; gap:10px; align-items:center; margin-bottom:24px; }
+
+  .social-section{ margin-bottom:40px; }
+  .social-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .social-head h2{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; }
+  .social-filters{ display:flex; gap:6px; }
+  .social-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .social-card{ background:var(--panel); border:1px solid var(--line); overflow:hidden; }
+  .social-thumb{ width:100%; aspect-ratio:1; position:relative; display:flex; align-items:center; justify-content:center; }
+  .social-platform{ position:absolute; top:10px; left:10px; font-family:'IBM Plex Mono'; font-size:9px; font-weight:600; text-transform:uppercase; padding:4px 8px; background:rgba(0,0,0,0.55); color:var(--white,#FBFAF6); letter-spacing:0.05em; }
+  .social-body{ padding:14px 16px; }
+  .social-caption{ font-size:12.5px; color:var(--text); line-height:1.45; margin-bottom:10px; min-height:34px; }
+  .social-meta{ display:flex; justify-content:space-between; align-items:center; font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--text-soft); }
+  .social-tag{ display:inline-flex; align-items:center; gap:5px; margin-top:10px; padding:5px 9px; background:var(--panel-2); font-family:'IBM Plex Mono'; font-size:9.5px; color:var(--tag); text-transform:uppercase; letter-spacing:0.03em; }
+  .social-empty{ padding:30px; text-align:center; font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); background:var(--panel); border:1px solid var(--line); }
+  .link-box{ font-family:'IBM Plex Mono'; font-size:12px; background:var(--panel); border:1px solid var(--line); padding:11px 14px; color:var(--text-soft); flex:1; max-width:420px; }
+
+  /* suppliers */
+  .supplier-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .supplier-card{ background:var(--panel); border:1px solid var(--line); padding:18px; display:flex; justify-content:space-between; align-items:center; gap:14px; }
+  .supplier-card .name{ font-size:14px; font-weight:600; margin-bottom:4px; }
+  .supplier-card .meta{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-soft); }
+  .supplier-card button{ font-family:'IBM Plex Mono'; font-size:10px; text-transform:uppercase; padding:9px 14px; border:1px solid var(--line); background:none; color:var(--text); cursor:pointer; white-space:nowrap; }
+  .supplier-card button.connected{ border-color:var(--green); color:var(--green); }
+  .supplier-card button.connect{ border-color:var(--tag); color:var(--tag); }
+  .empty-note{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-soft); padding:20px; text-align:center; }
+
+  /* analytics */
+  .chart-box{ background:var(--panel); border:1px solid var(--line); padding:24px; margin-bottom:24px; }
+  .chart-box h2{ font-family:'Oswald'; text-transform:uppercase; font-size:14px; margin-bottom:20px; }
+  .bars{ display:flex; align-items:flex-end; gap:14px; height:160px; }
+  .bar-col{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .bar{ width:100%; background:var(--tag); transition:height .3s ease; }
+  .bar-label{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--text-soft); margin-top:8px; }
+  .bar-val{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--text); margin-bottom:6px; }
+
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:#1D1B13; color:var(--text); font-family:'IBM Plex Mono'; font-size:12px; padding:13px 22px; border:1px solid var(--tag); opacity:0; pointer-events:none; transition:all .3s ease; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:1000px){
+    .stat-row{ grid-template-columns:1fr 1fr; }
+    .store-grid, .supplier-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="site.html" class="logo" style="text-decoration:none; color:inherit;"><div class="logo-mark">K+</div><div class="logo-text">Kazii+</div></a>
+  <div class="profile">
+    <div class="avatar"></div>
+    <div><div class="profile-name">Jade Williamson</div><div class="profile-role">Beauty Creator</div></div>
+  </div>
+  <nav>
+    <button class="active" data-tab="overview" onclick="setTab('overview')"><span class="ic">◻</span> Overview</button>
+    <button data-tab="products" onclick="setTab('products')"><span class="ic">▣</span> Products</button>
+    <button data-tab="orders" onclick="setTab('orders')"><span class="ic">▤</span> Orders</button>
+    <button data-tab="storefront" onclick="setTab('storefront')"><span class="ic">⌂</span> Storefront</button>
+    <a href="builder.html" class="ext"><span class="ic">✎</span> Builder</a>
+    <button data-tab="suppliers" onclick="setTab('suppliers')"><span class="ic">⌘</span> Suppliers</button>
+    <a href="inventory.html" class="ext"><span class="ic">▦</span> Inventory</a>
+    <button data-tab="analytics" onclick="setTab('analytics')"><span class="ic">▲</span> Analytics</button>
+    <div style="height:1px; background:var(--line); margin:14px 4px;"></div>
+    <a href="site.html"><span class="ic">⏻</span> Sign out</a>
+  </nav>
+</aside>
+
+<div class="content-area">
+
+  <!-- OVERVIEW -->
+  <div class="tabpanel active" id="tab-overview"><div class="page">
+    <div class="topbar"><div><h1>Overview</h1><p>Everything on the account, at a glance.</p></div></div>
+    <div class="stat-row" id="ovStats"></div>
+    <div class="panel-box">
+      <div class="panel-box-head"><h2>Recent activity</h2></div>
+      <div id="ovActivity"></div>
+    </div>
+    <div class="panel-box">
+      <div class="panel-box-head"><h2>Quick actions</h2></div>
+      <div style="padding:20px;" class="quick-actions">
+        <button class="btn-stamp" onclick="setTab('products'); setTimeout(()=>toggleProductForm(true),50)">+ New product</button>
+        <button class="btn-outline" onclick="setTab('storefront')">View storefront</button>
+        <button class="btn-outline" onclick="setTab('orders')">Review orders</button>
+        <a class="btn-outline" href="inventory.html" style="text-decoration:none; display:inline-flex; align-items:center;">Check inventory ↗</a>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- PRODUCTS -->
+  <div class="tabpanel" id="tab-products"><div class="page">
+    <div class="topbar">
+      <div><h1>Products</h1><p>What's built and what's live on your storefront.</p></div>
+      <button class="btn-stamp" onclick="toggleProductForm()">+ New product</button>
+    </div>
+    <div class="table-wrap">
+      <div class="inline-form" id="productForm">
+        <div class="form-field"><label>Name</label><input id="pf-name" placeholder="Product name"></div>
+        <div class="form-field"><label>Category</label>
+          <select id="pf-cat"><option>Skincare</option><option>Supplements</option><option>Apparel</option><option>Home</option></select>
+        </div>
+        <div class="form-field"><label>Price ($)</label><input id="pf-price" type="number" placeholder="29" style="min-width:80px;"></div>
+        <button class="btn-stamp" onclick="addProduct()">Add product</button>
+        <button class="btn-outline" onclick="toggleProductForm(false)">Cancel</button>
+      </div>
+      <table>
+        <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
+        <tbody id="productsBody"></tbody>
+      </table>
+    </div>
+  </div></div>
+
+  <!-- ORDERS -->
+  <div class="tabpanel" id="tab-orders"><div class="page">
+    <div class="topbar">
+      <div><h1>Orders</h1><p>Every sale, from checkout to shipment.</p></div>
+      <button class="btn-outline" onclick="simulateOrder()">↻ Simulate new order</button>
+    </div>
+    <div class="table-wrap">
+      <div class="filter-row" id="orderChips"></div>
+      <table>
+        <thead><tr><th>Order</th><th>Product</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div></div>
+
+  <!-- STOREFRONT -->
+  <div class="tabpanel" id="tab-storefront"><div class="page">
+    <div class="topbar"><div><h1>Storefront</h1><p>What your audience sees when they click the link.</p></div></div>
+    <div class="storefront-toggle">
+      <button class="switch on" id="storeSwitch" onclick="toggleStorefront()"></button>
+      <span class="mono" id="storeStatusLabel" style="font-size:12px; color:var(--text-soft);">STOREFRONT IS LIVE</span>
+    </div>
+    <div class="link-row">
+      <div class="link-box">kaziiplus.com/jadewilliamson</div>
+      <button class="btn-outline" onclick="copyLink()">Copy link</button>
+      <a href="jadewilliamson.html" target="_blank" rel="noopener" class="btn-stamp" style="text-decoration:none;">View live →</a>
+    </div>
+
+    <div class="social-section">
+      <div class="social-head">
+        <h2>Latest from @jadewilliamson</h2>
+        <div class="social-filters" id="socialChips"></div>
+      </div>
+      <div class="social-grid" id="socialGrid"></div>
+    </div>
+
+    <div id="storefrontContent"></div>
+  </div></div>
+
+  <!-- SUPPLIERS -->
+  <div class="tabpanel" id="tab-suppliers"><div class="page">
+    <div class="topbar"><div><h1>Suppliers</h1><p>Manufacturers connected to your brand, and the directory to add more.</p></div></div>
+    <div class="panel-box">
+      <div class="panel-box-head"><h2>My suppliers</h2></div>
+      <div id="mySuppliersBox" style="padding:16px 20px;"></div>
+    </div>
+    <div class="panel-box-head" style="border:none; padding:0 0 16px;"><h2 class="mono" style="font-family:'IBM Plex Mono'; font-size:10px; color:var(--text-soft); letter-spacing:0.07em;">BROWSE DIRECTORY</h2></div>
+    <div class="filter-group" id="supDirChips" style="margin-bottom:16px;"></div>
+    <div class="supplier-grid" id="supplierDirectory"></div>
+  </div></div>
+
+  <!-- ANALYTICS -->
+  <div class="tabpanel" id="tab-analytics"><div class="page">
+    <div class="topbar"><div><h1>Analytics</h1><p>Revenue and product performance, computed from your live order data.</p></div></div>
+    <div class="stat-row" id="anStats"></div>
+    <div class="chart-box">
+      <h2>Revenue by day</h2>
+      <div class="bars" id="revenueBars"></div>
+    </div>
+    <div class="panel-box">
+      <div class="panel-box-head"><h2>Top products</h2></div>
+      <table>
+        <thead><tr><th>Product</th><th>Orders</th><th>Revenue</th></tr></thead>
+        <tbody id="topProductsBody"></tbody>
+      </table>
+    </div>
+  </div></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  /* ---------- shared state ---------- */
+  let products = [
+    {id:1, name:'Glow Serum Vol. 2', category:'Skincare', price:38, status:'Live'},
+    {id:2, name:'Recovery Body Oil', category:'Skincare', price:28, status:'Live'},
+    {id:3, name:'Signature Candle — Amber', category:'Home', price:24, status:'Draft'},
+    {id:4, name:'Everyday Tote', category:'Apparel', price:32, status:'Live'},
+    {id:5, name:'Vitamin C Boost Capsules', category:'Supplements', price:29, status:'Draft'},
+  ];
+  let nextProductId = 6;
+
+  let orders = [
+    {id:1001, product:'Glow Serum Vol. 2', customer:'@mia.k', amount:38, status:'Fulfilled', date:'Aug 10'},
+    {id:1002, product:'Everyday Tote', customer:'@jrod', amount:32, status:'Shipped', date:'Aug 11'},
+    {id:1003, product:'Recovery Body Oil', customer:'@t.wells', amount:28, status:'Pending', date:'Aug 12'},
+    {id:1004, product:'Glow Serum Vol. 2', customer:'@ana.b', amount:38, status:'Pending', date:'Aug 12'},
+    {id:1005, product:'Everyday Tote', customer:'@dcruz', amount:32, status:'Fulfilled', date:'Aug 13'},
+    {id:1006, product:'Glow Serum Vol. 2', customer:'@k.lee', amount:38, status:'Shipped', date:'Aug 13'},
+  ];
+  let nextOrderId = 1007;
+  let orderFilter = 'All';
+  const customerHandles = ['@nia.p','@grantwx','@sof.reyes','@marclee','@bebe_c','@drewv'];
+
+  let suppliers = [
+    {name:'PureForm Labs', category:'Skincare', country:'South Korea', connected:true},
+    {name:'ThreadCraft Studio', category:'Apparel', country:'Portugal', connected:true},
+    {name:'NutraSource Co.', category:'Supplements', country:'USA', connected:false},
+    {name:'GlassHouse Goods', category:'Home', country:'China', connected:false},
+    {name:'Bright Label Co.', category:'Skincare', country:'Italy', connected:false},
+    {name:'FitFuel Manufacturing', category:'Supplements', country:'USA', connected:false},
+  ];
+  let supDirFilter = 'All';
+  let storefrontLive = true;
+
+  /* ---------- toast + tabs ---------- */
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._t);
+    window._t = setTimeout(()=>t.classList.remove('show'), 2400);
+  }
+  function setTab(tab){
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    renderAll();
+  }
+
+  /* ---------- OVERVIEW ---------- */
+  function renderOverview(){
+    const revenue = orders.reduce((s,o)=>s+o.amount,0);
+    const live = products.filter(p=>p.status==='Live').length;
+    const pending = orders.filter(o=>o.status==='Pending').length;
+    const connected = suppliers.filter(s=>s.connected).length;
+    document.getElementById('ovStats').innerHTML = `
+      <div class="stat-card ok"><div class="lbl">Gross revenue</div><div class="num">$${revenue.toLocaleString()}</div><div class="sub">All orders to date</div></div>
+      <div class="stat-card"><div class="lbl">Live products</div><div class="num">${live}</div><div class="sub">of ${products.length} total</div></div>
+      <div class="stat-card ${pending?'warn':'ok'}"><div class="lbl">Pending orders</div><div class="num">${pending}</div><div class="sub">Need fulfillment</div></div>
+      <div class="stat-card"><div class="lbl">Connected suppliers</div><div class="num">${connected}</div><div class="sub">Manufacturing your line</div></div>
+    `;
+    const recent = [...orders].sort((a,b)=>b.id-a.id).slice(0,5);
+    document.getElementById('ovActivity').innerHTML = recent.map(o=>`
+      <div class="activity-row">
+        <div>Order #${o.id} — ${o.product} <span class="who">· ${o.customer}</span></div>
+        <div class="amt">$${o.amount}</div>
+      </div>`).join('');
+  }
+
+  /* ---------- PRODUCTS ---------- */
+  function toggleProductForm(force){
+    const f = document.getElementById('productForm');
+    const open = force!==undefined ? force : !f.classList.contains('open');
+    f.classList.toggle('open', open);
+  }
+  function addProduct(){
+    const name = document.getElementById('pf-name').value.trim();
+    const cat = document.getElementById('pf-cat').value;
+    const price = parseFloat(document.getElementById('pf-price').value) || 0;
+    if(!name){ toast('Give the product a name first'); return; }
+    products.push({id:nextProductId++, name, category:cat, price, status:'Draft'});
+    document.getElementById('pf-name').value=''; document.getElementById('pf-price').value='';
+    toggleProductForm(false);
+    toast(`${name} added as a draft`);
+    renderAll();
+  }
+  function toggleProductStatus(id){
+    const p = products.find(p=>p.id===id);
+    p.status = p.status==='Live' ? 'Draft' : 'Live';
+    toast(`${p.name} is now ${p.status}`);
+    renderAll();
+  }
+  function deleteProduct(id){
+    const p = products.find(p=>p.id===id);
+    products = products.filter(p=>p.id!==id);
+    toast(`${p.name} removed`);
+    renderAll();
+  }
+  function renderProducts(){
+    document.getElementById('productsBody').innerHTML = products.map(p => `
+      <tr>
+        <td style="font-weight:600;">${p.name}</td>
+        <td class="mono" style="color:var(--text-soft); font-size:11px; text-transform:uppercase;">${p.category}</td>
+        <td class="mono">$${p.price}</td>
+        <td><button class="status-pill ${p.status==='Live'?'ok':'warn'}" onclick="toggleProductStatus(${p.id})"><span class="dot2"></span>${p.status}</button></td>
+        <td class="row-actions"><button class="link-btn danger" onclick="deleteProduct(${p.id})">Remove</button></td>
+      </tr>`).join('');
+  }
+
+  /* ---------- ORDERS ---------- */
+  function setOrderFilter(f){ orderFilter = f; renderOrders(); }
+  function advanceOrder(id){
+    const o = orders.find(o=>o.id===id);
+    if(o.status==='Pending') o.status='Fulfilled';
+    else if(o.status==='Fulfilled') o.status='Shipped';
+    toast(`Order #${id} marked ${o.status}`);
+    renderAll();
+  }
+  function simulateOrder(){
+    const live = products.filter(p=>p.status==='Live');
+    if(!live.length){ toast('No live products to order from — mark one Live first'); return; }
+    const p = live[Math.floor(Math.random()*live.length)];
+    const cust = customerHandles[Math.floor(Math.random()*customerHandles.length)];
+    orders.unshift({id:nextOrderId++, product:p.name, customer:cust, amount:p.price, status:'Pending', date:'Today'});
+    toast(`New order — ${p.name} from ${cust}`);
+    renderAll();
+  }
+  function renderOrders(){
+    document.getElementById('orderChips').innerHTML = ['All','Pending','Fulfilled','Shipped'].map(s=>
+      `<div class="chip ${orderFilter===s?'active':''}" onclick="setOrderFilter('${s}')">${s}</div>`).join('');
+    const list = orders.filter(o=>orderFilter==='All'||o.status===orderFilter).sort((a,b)=>b.id-a.id);
+    document.getElementById('ordersBody').innerHTML = list.map(o=>{
+      const cls = o.status==='Pending'?'warn':o.status==='Fulfilled'?'ok':'ok';
+      const nextLabel = o.status==='Pending' ? 'Mark Fulfilled' : o.status==='Fulfilled' ? 'Mark Shipped' : null;
+      return `<tr>
+        <td class="mono">#${o.id}</td>
+        <td>${o.product}</td>
+        <td class="mono" style="color:var(--text-soft);">${o.customer}</td>
+        <td class="mono">$${o.amount}</td>
+        <td><span class="status-pill ${cls}"><span class="dot2"></span>${o.status}</span></td>
+        <td class="mono" style="color:var(--text-soft);">${o.date}</td>
+        <td>${nextLabel ? `<button class="link-btn" onclick="advanceOrder(${o.id})">${nextLabel} →</button>` : `<button class="link-btn" disabled>Complete ✓</button>`}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ---------- STOREFRONT ---------- */
+  let socialFilter = 'All';
+  const socialPosts = [
+    { platform: 'Instagram', caption: "Two weeks of using this every morning and my skin genuinely feels different. Linking it below \ud83d\udc9a", likes: '4,281', comments: 96, product: 'Glow Serum Vol. 2' },
+    { platform: 'TikTok', caption: "GRWM but I keep stopping to talk about this oil, sorry not sorry", likes: '18.9K', comments: 412, product: 'Recovery Body Oil' },
+    { platform: 'Instagram', caption: "This tote has been in every single travel video for a month. Finally made it official.", likes: '2,150', comments: 58, product: 'Everyday Tote' },
+    { platform: 'TikTok', caption: "Answering your #1 most-asked question: yes, I make this myself now", likes: '31.4K', comments: 780, product: 'Glow Serum Vol. 2' },
+  ];
+  function platformGrad(p){ return p === 'TikTok' ? 'linear-gradient(135deg,#1C1B18,#3a3733)' : 'linear-gradient(135deg,#c65f8a,#5b4a9e)'; }
+  function setSocialFilter(f){ socialFilter = f; renderSocialFeed(); }
+  function renderSocialFeed(){
+    document.getElementById('socialChips').innerHTML = ['All','Instagram','TikTok'].map(p =>
+      `<div class="chip ${socialFilter===p?'active':''}" onclick="setSocialFilter('${p}')">${p}</div>`).join('');
+    const list = socialPosts.filter(p => socialFilter==='All' || p.platform===socialFilter);
+    const grid = document.getElementById('socialGrid');
+    if(!list.length){ grid.innerHTML = `<div class="social-empty" style="grid-column:1/-1;">No posts on this platform yet.</div>`; return; }
+    grid.innerHTML = list.map(p => `
+      <div class="social-card">
+        <div class="social-thumb" style="background:${platformGrad(p.platform)}">
+          <span class="social-platform">${p.platform}</span>
+        </div>
+        <div class="social-body">
+          <div class="social-caption">${p.caption}</div>
+          <div class="social-meta"><span>\u2764 ${p.likes}</span><span>\ud83d\udcac ${p.comments}</span></div>
+          <div class="social-tag">\ud83d\udd17 ${p.product}</div>
+        </div>
+      </div>`).join('');
+  }
+  function catStyle(cat){
+    const map = {
+      Skincare: 'linear-gradient(135deg,#3E6349,#2B4636)',
+      Supplements: 'linear-gradient(135deg,#E3B04B,#B5432E)',
+      Apparel: 'linear-gradient(135deg,#54503f,#1C1B18)',
+      Home: 'linear-gradient(135deg,#D06B4F,#B5432E)'
+    };
+    return map[cat] || 'linear-gradient(135deg,#54503f,#1C1B18)';
+  }
+  function catIcon(cat){
+    const icons = {
+      Skincare: `<path d="M50 15 C64 38 74 54 74 67 A24 24 0 1 1 26 67 C26 54 36 38 50 15 Z" fill="#F1EEE4"/>`,
+      Supplements: `<rect x="24" y="42" width="52" height="17" rx="8.5" fill="#F1EEE4"/><rect x="24" y="42" width="26" height="17" rx="8.5" fill="#1C1B18" opacity="0.25"/>`,
+      Apparel: `<path d="M32 38 H68 L74 82 H26 Z" fill="#F1EEE4"/><path d="M40 38 Q40 22 50 22 Q60 22 60 38" stroke="#F1EEE4" stroke-width="5" fill="none"/>`,
+      Home: `<rect x="43" y="46" width="14" height="34" fill="#F1EEE4"/><path d="M50 18 C58 30 58 38 50 46 C42 38 42 30 50 18 Z" fill="#F1EEE4"/>`
+    };
+    return icons[cat] || icons['Home'];
+  }
+  function toggleStorefront(){
+    storefrontLive = !storefrontLive;
+    renderStorefront();
+  }
+  function copyLink(){
+    const url = 'https://kaziiplus.com/jadewilliamson';
+    if(navigator.clipboard){ navigator.clipboard.writeText(url).catch(()=>{}); }
+    toast('Storefront link copied');
+  }
+  function renderStorefront(){
+    const sw = document.getElementById('storeSwitch');
+    sw.classList.toggle('on', storefrontLive);
+    document.getElementById('storeStatusLabel').textContent = storefrontLive ? 'STOREFRONT IS LIVE' : 'STOREFRONT IS OFFLINE';
+    const box = document.getElementById('storefrontContent');
+    if(!storefrontLive){
+      box.innerHTML = `<div class="storefront-offline"><div class="mono">Your storefront is currently offline. Turn it back on to let your audience check out.</div></div>`;
+      return;
+    }
+    const live = products.filter(p=>p.status==='Live');
+    if(!live.length){
+      box.innerHTML = `<div class="storefront-offline"><div class="mono">No live products yet — mark something Live in the Products tab to see it here.</div></div>`;
+      return;
+    }
+    box.innerHTML = `<div class="store-grid">` + live.map(p => `
+      <div class="store-card">
+        <div class="thumb" style="background:${catStyle(p.category)}; display:flex; align-items:center; justify-content:center;">
+          <svg viewBox="0 0 100 100" width="42%" height="42%">${catIcon(p.category)}</svg>
+        </div>
+        <h4>${p.name}</h4>
+        <div class="cat">${p.category}</div>
+        <div class="row"><span class="price">$${p.price}</span><button onclick="toast('Checkout isn\\'t wired up in this demo')">Buy</button></div>
+      </div>`).join('') + `</div>`;
+  }
+
+  /* ---------- SUPPLIERS ---------- */
+  function toggleSupplierConnection(name){
+    const s = suppliers.find(s=>s.name===name);
+    s.connected = !s.connected;
+    toast(`${s.connected ? 'Connected to' : 'Disconnected from'} ${s.name}`);
+    renderSuppliers();
+    renderOverview();
+  }
+  function setSupDirFilter(f){ supDirFilter = f; renderSuppliers(); }
+  function renderSuppliers(){
+    const mine = suppliers.filter(s=>s.connected);
+    document.getElementById('mySuppliersBox').innerHTML = mine.length ? mine.map(s => `
+      <div class="supplier-card" style="margin-bottom:10px;">
+        <div><div class="name">${s.name}</div><div class="meta">${s.category} · ${s.country}</div></div>
+        <button class="connected" onclick="toggleSupplierConnection('${s.name}')">Connected ✓</button>
+      </div>`).join('') : `<div class="empty-note">No suppliers connected yet — browse the directory below.</div>`;
+
+    document.getElementById('supDirChips').innerHTML = ['All','Skincare','Supplements','Apparel','Home'].map(c =>
+      `<div class="chip ${supDirFilter===c?'active':''}" onclick="setSupDirFilter('${c}')">${c}</div>`).join('');
+
+    const dir = suppliers.filter(s => supDirFilter==='All' || s.category===supDirFilter);
+    document.getElementById('supplierDirectory').innerHTML = dir.map(s => `
+      <div class="supplier-card">
+        <div><div class="name">${s.name}</div><div class="meta">${s.category} · ${s.country}</div></div>
+        <button class="${s.connected?'connected':'connect'}" onclick="toggleSupplierConnection('${s.name}')">${s.connected?'Connected ✓':'Connect →'}</button>
+      </div>`).join('');
+  }
+
+  /* ---------- ANALYTICS ---------- */
+  function renderAnalytics(){
+    const revenue = orders.reduce((s,o)=>s+o.amount,0);
+    const fulfilledRevenue = orders.filter(o=>o.status!=='Pending').reduce((s,o)=>s+o.amount,0);
+    const avgOrder = orders.length ? (revenue/orders.length) : 0;
+    const byProduct = {};
+    orders.forEach(o=>{ byProduct[o.product] = byProduct[o.product] || {count:0, revenue:0}; byProduct[o.product].count++; byProduct[o.product].revenue += o.amount; });
+    const topEntries = Object.entries(byProduct).sort((a,b)=>b[1].revenue-a[1].revenue);
+    const topProduct = topEntries.length ? topEntries[0][0] : '—';
+
+    document.getElementById('anStats').innerHTML = `
+      <div class="stat-card ok"><div class="lbl">Total revenue</div><div class="num">$${revenue.toLocaleString()}</div><div class="sub">${orders.length} orders</div></div>
+      <div class="stat-card"><div class="lbl">Confirmed revenue</div><div class="num">$${fulfilledRevenue.toLocaleString()}</div><div class="sub">Fulfilled + shipped</div></div>
+      <div class="stat-card"><div class="lbl">Avg. order value</div><div class="num">$${avgOrder.toFixed(0)}</div><div class="sub">Across all orders</div></div>
+      <div class="stat-card"><div class="lbl">Top product</div><div class="num" style="font-size:16px; line-height:1.3;">${topProduct}</div><div class="sub">By revenue</div></div>
+    `;
+
+    const byDate = {};
+    orders.forEach(o=>{ byDate[o.date] = (byDate[o.date]||0) + o.amount; });
+    const dateOrder = ['Aug 10','Aug 11','Aug 12','Aug 13','Today'];
+    const dates = dateOrder.filter(d=>byDate[d]!==undefined);
+    const max = Math.max(...dates.map(d=>byDate[d]), 1);
+    document.getElementById('revenueBars').innerHTML = dates.map(d => `
+      <div class="bar-col">
+        <div class="bar-val">$${byDate[d]}</div>
+        <div class="bar" style="height:${Math.max((byDate[d]/max)*100,4)}%;"></div>
+        <div class="bar-label">${d}</div>
+      </div>`).join('');
+
+    document.getElementById('topProductsBody').innerHTML = topEntries.map(([name,d]) => `
+      <tr><td>${name}</td><td class="mono">${d.count}</td><td class="mono">$${d.revenue}</td></tr>`).join('');
+  }
+
+  function renderAll(){
+    renderOverview(); renderProducts(); renderOrders(); renderStorefront(); renderSocialFeed(); renderSuppliers(); renderAnalytics();
+  }
+
+  /* ---------- init: support ?tab= for cross-page links ---------- */
+  const params = new URLSearchParams(window.location.search);
+  const initialTab = params.get('tab');
+  renderAll();
+  if(initialTab && document.getElementById('tab-'+initialTab)) setTab(initialTab);
+</script>
+</body>
+</html>
