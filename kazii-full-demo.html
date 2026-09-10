@@ -126,7 +126,8 @@
 .garment.phonecase{ width:180px; height:360px; border-radius:34px; }
 .garment.sticker{ width:220px; height:220px; border-radius:16px; box-shadow:0 0 0 3px var(--bg), 0 0 0 5px var(--line); }
 .garment.hat{ width:260px; height:180px; border-radius:130px 130px 12px 12px; }
-.garment.canvas{ width:400px; height:400px; border-radius:2px; box-shadow:4px 4px 0 rgba(0,0,0,0.25); }#screen-builder .layer-el{ position:absolute; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }#screen-builder .layer-el.selected-outline{ outline:1px dashed var(--tag); outline-offset:6px; }#screen-builder .layer-el img{ max-width:120px; max-height:120px; display:block; }#screen-builder .layer-text{ font-family:'Fraunces',serif; font-weight:600; font-size:14px; text-transform:none; background:#FBFAF6; border:1px solid #1C1B18; border-radius:4px; color:#1C1B18; padding:6px 14px; white-space:nowrap; }#screen-builder .stage-meta{ margin-top:16px; font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); text-align:center; }#screen-builder .layers{ width:260px; background:var(--panel); border-left:1px solid var(--line); padding:22px 20px; flex-shrink:0; overflow-y:auto; }#screen-builder .layers-head{ font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--text-soft); margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--line);}#screen-builder .layer-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 10px; border-radius:8px; font-size:13.5px; cursor:pointer; }#screen-builder .layer-row.selected{ background:var(--panel-2); }#screen-builder .layer-row .l-name{ display:flex; align-items:center; gap:8px; }#screen-builder .layer-row .l-ic{ font-family:'Inter',sans-serif; font-size:12px; color:var(--tag); }#screen-builder .layer-row .l-del{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); background:none; border:none; cursor:pointer; }#screen-builder .layer-row .l-del:hover{ color:var(--rust); }#screen-builder .layer-empty{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); text-align:center; padding:30px 0; }#screen-builder .bottom-strip{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-top:1px solid var(--line); background:var(--panel); }#screen-builder .swatch-name{ font-family:'Inter',sans-serif; font-size:13px; color:var(--text-soft); display:flex; align-items:center; gap:8px; }#screen-builder .swatch-dot{ width:14px; height:14px; border-radius:50%; background:#EDE8DA; border:1px solid var(--line); }
+.garment.canvas{ width:400px; height:400px; border-radius:2px; box-shadow:4px 4px 0 rgba(0,0,0,0.25); }
+.garment.other{ width:auto; height:auto; display:flex; align-items:center; justify-content:center; }#screen-builder .layer-el{ position:absolute; left:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; }#screen-builder .layer-el.selected-outline{ outline:1px dashed var(--tag); outline-offset:6px; }#screen-builder .layer-el img{ max-width:120px; max-height:120px; display:block; }#screen-builder .layer-text{ font-family:'Fraunces',serif; font-weight:600; font-size:14px; text-transform:none; background:#FBFAF6; border:1px solid #1C1B18; border-radius:4px; color:#1C1B18; padding:6px 14px; white-space:nowrap; }#screen-builder .stage-meta{ margin-top:16px; font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); text-align:center; }#screen-builder .layers{ width:260px; background:var(--panel); border-left:1px solid var(--line); padding:22px 20px; flex-shrink:0; overflow-y:auto; }#screen-builder .layers-head{ font-family:'Inter',sans-serif; font-size:11.5px; font-weight:600; text-transform:none; letter-spacing:0; color:var(--text-soft); margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--line);}#screen-builder .layer-row{ display:flex; align-items:center; justify-content:space-between; padding:11px 10px; border-radius:8px; font-size:13.5px; cursor:pointer; }#screen-builder .layer-row.selected{ background:var(--panel-2); }#screen-builder .layer-row .l-name{ display:flex; align-items:center; gap:8px; }#screen-builder .layer-row .l-ic{ font-family:'Inter',sans-serif; font-size:12px; color:var(--tag); }#screen-builder .layer-row .l-del{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); background:none; border:none; cursor:pointer; }#screen-builder .layer-row .l-del:hover{ color:var(--rust); }#screen-builder .layer-empty{ font-family:'Inter',sans-serif; font-size:12px; color:var(--text-soft); text-align:center; padding:30px 0; }#screen-builder .bottom-strip{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-top:1px solid var(--line); background:var(--panel); }#screen-builder .swatch-name{ font-family:'Inter',sans-serif; font-size:13px; color:var(--text-soft); display:flex; align-items:center; gap:8px; }#screen-builder .swatch-dot{ width:14px; height:14px; border-radius:50%; background:#EDE8DA; border:1px solid var(--line); }
 
   @media (max-width:900px){#screen-builder.active{ height:auto; min-height:100vh; overflow-y:auto; overflow-x:hidden; }#screen-builder .body{ flex-direction:column; overflow:visible; }#screen-builder .rail{ width:100%; flex-direction:row; padding:10px; overflow-x:auto; border-right:none; border-bottom:1px solid var(--line); }#screen-builder .panel{ width:100%; border-right:none; border-bottom:1px solid var(--line); }#screen-builder .stage-wrap{ padding:20px 16px; }#screen-builder .stage{ width:100%; max-width:380px; height:auto; aspect-ratio:460/560; }#screen-builder .layers{ width:100%; border-left:none; border-top:1px solid var(--line); }
   }
@@ -1761,7 +1762,8 @@
     phonecase: {label:'Phone Case', icon:'▯'},
     sticker: {label:'Sticker', icon:'✦'},
     hat: {label:'Hat', icon:'◠'},
-    canvas: {label:'Canvas Print', icon:'▥'}
+    canvas: {label:'Canvas Print', icon:'▥'},
+    other: {label:'Other', icon:'✎'}
   };
   const COLORS = {
     chalk: {label:'Chalk White', hex:'#EDE8DA'},
@@ -1851,6 +1853,12 @@
     toast('Draft saved — DOCKET #04,822 (session only, no backend)');
   }
 
+  function requestOtherProduct(){
+    const input = document.getElementById('otherProductInput');
+    const note = input ? input.value.trim() : '';
+    toast(note ? `Request noted: "${note.slice(0,40)}${note.length>40?'…':''}" (session only, no backend)` : 'Describe the product before requesting it');
+  }
+
   function renderProofLabel(){
     document.getElementById('proofLabel').innerHTML =
       `PROOF · ${PRODUCTS[state.productType].label.toUpperCase()} — <b>${COLORS[state.color].label.toUpperCase()}</b>`;
@@ -1862,6 +1870,12 @@
 
   function renderStage(){
     const garment = document.getElementById('garment');
+    if(state.productType === 'other'){
+      garment.className = 'garment other';
+      garment.style.background = 'none';
+      garment.innerHTML = `<div class="integration-note" style="max-width:280px;">Not seeing your product? There's no preview for it yet, but tell us what it is in the panel on the left — we route these requests when scoping new manufacturers.</div>`;
+      return;
+    }
     garment.className = 'garment ' + state.productType;
     garment.style.background = COLORS[state.color].hex;
     garment.innerHTML = '';
@@ -1899,7 +1913,11 @@
           <button class="type-option ${state.productType===key?'selected':''}" onclick="selectProduct('${key}')">
             <div class="to-name"><span class="ic">${p.icon}</span> ${p.label}</div>
             ${state.productType===key ? '<span class="check">✓</span>' : ''}
-          </button>`).join('');
+          </button>`).join('') +
+        (state.productType==='other' ? `
+          <div class="panel-sub" style="margin-top:14px;">Not on the list? Tell us what you're picturing — this goes to the team scoping new manufacturers, not a live catalog.</div>
+          <textarea class="text-input" id="otherProductInput" placeholder="e.g. a branded skateboard deck" style="width:100%; min-height:70px; margin-bottom:10px; font-family:inherit; resize:vertical;"></textarea>
+          <button class="btn-block" onclick="requestOtherProduct()">Request this product →</button>` : '');
     }
     else if(state.activeTab==='color'){
       panel.innerHTML = `<div class="panel-label">Choose color</div><div class="swatch-grid">` +
@@ -1963,6 +1981,7 @@
   window.addTextLayer = addTextLayer;
   window.deleteLayer = deleteLayer;
   window.saveDesign = saveDesign;
+  window.requestOtherProduct = requestOtherProduct;
   window.selectColor = selectColor;
   window.selectLayer = selectLayer;
   window.selectProduct = selectProduct;
