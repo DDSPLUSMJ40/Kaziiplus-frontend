@@ -608,7 +608,7 @@
 
     <div class="switch-note" id="switchNote"></div>
 
-    <div class="demo-note">Account creation calls a real backend once it's deployed and <code>API_BASE_URL</code> is set in the code. Until then, this shows a "can't reach the server" message instead of pretending to work.</div>
+    <div class="demo-note">Account creation calls the real Kazii+ backend. Supplier/manufacturer matching isn't built yet -- those accounts are created for real, but the workspace they land in is still a placeholder.</div>
   </div>
 </div>
 
@@ -1022,7 +1022,7 @@
      signup/login call fails fast with a clear "can't reach the server" message
      instead of pretending to work, so an undeployed backend is never silently
      confused with a working one. */
-  const API_BASE_URL = '';
+  const API_BASE_URL = 'https://api.kaziiplus.com';
 
   /* Fulfillment provider connections -- shared between the Suppliers tab (App) and the
      Builder tool rail (separate IIFE scope), since a design tool needs to know which
