@@ -846,7 +846,8 @@
   </div>
   <div class="tb-right">
     <button class="btn-ghost" id="previewBtn" onclick="togglePreview()">◎ Preview</button>
-    <button class="btn-stamp" onclick="saveDesign()">⇧ Save design</button>
+    <button class="btn-outline" onclick="saveDesign()">⇧ Save design</button>
+    <button class="btn-stamp" onclick="publishDesign()">Publish →</button>
   </div>
 </div>
 
@@ -1780,7 +1781,10 @@
     preview: false,
     layers: [{id:1, type:'text', content:'Your Brand', dy:0}],
     selectedLayerId: 1,
-    nextId: 2
+    nextId: 2,
+    name: '',
+    price: '',
+    productId: null
   };
 
   
@@ -1849,8 +1853,69 @@
     document.getElementById('rail').style.opacity = state.preview ? '0.35' : '1';
   }
 
-  function saveDesign(){
-    toast('Draft saved — DOCKET #04,822 (session only, no backend)');
+  function updateBuilderName(val){ state.name = val; }
+  function updateBuilderPrice(val){ state.price = val; }
+
+  // Shared by saveDesign/publishDesign -- POSTs on first save, PATCHes the
+  // same product on every save after (state.productId), so repeated saves
+  // update in place instead of creating duplicate rows.
+  async function saveBuilderProduct(extraFields){
+    const name = (state.name || '').trim();
+    if(!name){ toast('Give your product a name first'); return null; }
+
+    const token = localStorage.getItem('kaziiToken');
+    if(!token){
+      toast('Sign up to save your design');
+      goTo('auth'); authSetMode('signup');
+      return null;
+    }
+
+    const payload = {
+      name,
+      productType: state.productType,
+      color: COLORS[state.color].label,
+      designJson: { layers: state.layers },
+      ...(state.price ? { price: Number(state.price) } : {}),
+      ...extraFields
+    };
+
+    const url = state.productId ? `${API_BASE_URL}/products/${state.productId}` : `${API_BASE_URL}/products`;
+    const method = state.productId ? 'PATCH' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if(res.status === 401){
+        localStorage.removeItem('kaziiToken'); localStorage.removeItem('kaziiUser');
+        toast('Session expired — please sign in again');
+        goTo('auth'); authSetMode('signin');
+        return null;
+      }
+      if(!res.ok){
+        toast(data.message || 'Could not save — check the form and try again.');
+        return null;
+      }
+      state.productId = data.product.id;
+      return data.product;
+    } catch(e){
+      toast('Can’t reach the server — check the backend is deployed and API_BASE_URL is set correctly.');
+      return null;
+    }
+  }
+
+  async function saveDesign(){
+    const product = await saveBuilderProduct({});
+    if(product) toast('Draft saved');
+  }
+
+  async function publishDesign(){
+    const product = await saveBuilderProduct({ status: 'LIVE' });
+    if(product) toast(`${product.name} is live on your storefront`);
   }
 
   function requestOtherProduct(){
@@ -1908,7 +1973,12 @@
   function renderPanel(){
     const panel = document.getElementById('panel');
     if(state.activeTab==='product'){
-      panel.innerHTML = `<div class="panel-label">Choose product type</div>` +
+      panel.innerHTML = `<div class="panel-label">Product details</div>
+        <label class="field-label">Name</label>
+        <input class="text-input" id="builderName" placeholder="e.g. Founders Tee" value="${state.name}" oninput="updateBuilderName(this.value)">
+        <label class="field-label">Price ($)</label>
+        <input class="text-input" id="builderPrice" type="number" placeholder="29" value="${state.price}" oninput="updateBuilderPrice(this.value)" style="margin-bottom:16px;">
+        <div class="panel-label">Choose product type</div>` +
         Object.entries(PRODUCTS).map(([key,p]) => `
           <button class="type-option ${state.productType===key?'selected':''}" onclick="selectProduct('${key}')">
             <div class="to-name"><span class="ic">${p.icon}</span> ${p.label}</div>

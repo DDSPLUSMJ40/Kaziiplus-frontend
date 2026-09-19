@@ -37,6 +37,14 @@ decision, not done as part of this reorganization.
 
 ## Backend
 
-API calls (auth, products, etc.) go to the `kazii-backend` service — see
-that repo for endpoints. Signup/login forms here currently simulate success
-client-side and are not yet wired to the real API.
+API calls go to the `kazii-backend` service (`API_BASE_URL` in
+`kazii-full-demo.html`, currently `https://api.kaziiplus.com`) — see that
+repo for endpoints.
+
+- **Auth (signup/login) is wired and live** — real `fetch()` calls to
+  `/auth/signup` and `/auth/login`, storing the returned JWT in
+  `localStorage` (`kaziiToken`, `kaziiUser`). Verified end-to-end against
+  production.
+- **Everything else in `#screen-app` (the product Builder, inventory) is
+  still client-side only** — no `/products` calls exist yet. Publishing a
+  product here does not create anything in the real backend.
