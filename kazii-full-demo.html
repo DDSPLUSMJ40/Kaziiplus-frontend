@@ -719,7 +719,7 @@
     <div class="panel-box">
       <div class="panel-box-head"><h2>Quick actions</h2></div>
       <div style="padding:20px;" class="quick-actions">
-        <button class="btn-stamp" onclick="appSetTab('products'); setTimeout(()=>toggleProductForm(true),50)">+ New product</button>
+        <button class="btn-stamp" onclick="quickNewProduct()">+ New product</button>
         <button class="btn-outline" onclick="appSetTab('storefront')">View storefront</button>
         <button class="btn-outline" onclick="appSetTab('orders')">Review orders</button>
         <button class="btn-outline" onclick="goTo('inventory')" style="text-decoration:none; display:inline-flex; align-items:center;">Check inventory ↗</button>
@@ -731,7 +731,7 @@
   <div class="tabpanel" id="tab-products"><div class="page">
     <div class="topbar">
       <div><h1>Products</h1><p>What's built and what's live on your storefront.</p></div>
-      <button class="btn-stamp" onclick="toggleProductForm()">+ New product</button>
+      <button class="btn-stamp" id="newProductBtn" onclick="toggleProductForm()">+ New product</button>
     </div>
     <div class="table-wrap">
       <div class="inline-form" id="productForm">
@@ -744,7 +744,7 @@
         <button class="btn-outline" onclick="toggleProductForm(false)">Cancel</button>
       </div>
       <table>
-        <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Product</th><th id="productsColLabel">Category</th><th>Price</th><th>Status</th><th></th></tr></thead>
         <tbody id="productsBody"></tbody>
       </table>
     </div>
@@ -1504,7 +1504,88 @@
     toast(`${p.name} removed`);
     renderAll();
   }
+
+  // The Builder (design tool) is the real way to create a product --
+  // no second, competing creation path with a different data shape
+  // (category vs productType) for logged-in creators.
+  function quickNewProduct(){
+    if(localStorage.getItem('kaziiToken')){ goTo('builder'); return; }
+    appSetTab('products'); setTimeout(()=>toggleProductForm(true), 50);
+  }
+
+  let realProducts = null;
+
+  async function fetchRealProducts(){
+    const token = localStorage.getItem('kaziiToken');
+    if(!token){ realProducts = null; return; }
+    try {
+      const res = await fetch(`${API_BASE_URL}/products`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json().catch(() => ({}));
+      realProducts = res.ok ? (data.products || []) : [];
+    } catch(e){
+      realProducts = [];
+    }
+  }
+
+  async function toggleRealProductStatus(id, currentStatus){
+    const token = localStorage.getItem('kaziiToken');
+    const newStatus = currentStatus === 'LIVE' ? 'DRAFT' : 'LIVE';
+    try {
+      const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if(!res.ok){ toast('Could not update status'); return; }
+      toast(`Product is now ${newStatus}`);
+      realProducts = null;
+      renderProducts();
+    } catch(e){
+      toast('Can’t reach the server — try again in a moment.');
+    }
+  }
+
+  async function deleteRealProduct(id){
+    const token = localStorage.getItem('kaziiToken');
+    try {
+      const res = await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+      if(!res.ok && res.status !== 204){ toast('Could not remove product'); return; }
+      toast('Product removed');
+      realProducts = null;
+      renderProducts();
+    } catch(e){
+      toast('Can’t reach the server — try again in a moment.');
+    }
+  }
+
+  function renderRealProducts(){
+    document.getElementById('newProductBtn').onclick = () => goTo('builder');
+    document.getElementById('newProductBtn').textContent = '+ New product (Builder)';
+    document.getElementById('productsColLabel').textContent = 'Type';
+    if(realProducts === null){
+      document.getElementById('productsBody').innerHTML = `<tr><td colspan="5" class="mono" style="color:var(--text-soft);">Loading your products…</td></tr>`;
+      fetchRealProducts().then(renderProducts);
+      return;
+    }
+    if(!realProducts.length){
+      document.getElementById('productsBody').innerHTML = `<tr><td colspan="5" class="mono" style="color:var(--text-soft);">No products yet — use the Builder to create one.</td></tr>`;
+      return;
+    }
+    document.getElementById('productsBody').innerHTML = realProducts.map(p => `
+      <tr>
+        <td style="font-weight:600;">${p.name}</td>
+        <td class="mono" style="color:var(--text-soft); font-size:11px; text-transform:uppercase;">${p.productType}</td>
+        <td class="mono">${p.price != null ? '$' + p.price : '—'}</td>
+        <td><button class="status-pill ${p.status==='LIVE'?'ok':'warn'}" onclick="toggleRealProductStatus('${p.id}','${p.status}')"><span class="dot2"></span>${p.status}</button></td>
+        <td class="row-actions"><button class="link-btn danger" onclick="deleteRealProduct('${p.id}')">Remove</button></td>
+      </tr>`).join('');
+  }
+
   function renderProducts(){
+    if(localStorage.getItem('kaziiToken')){ renderRealProducts(); return; }
+    document.getElementById('newProductBtn').onclick = () => toggleProductForm();
+    document.getElementById('newProductBtn').textContent = '+ New product';
+    document.getElementById('productsColLabel').textContent = 'Category';
     document.getElementById('productsBody').innerHTML = products.map(p => `
       <tr>
         <td style="font-weight:600;">${p.name}</td>
@@ -1824,6 +1905,9 @@
   window.simulateOrder = simulateOrder;
   window.toggleProductForm = toggleProductForm;
   window.toggleProductStatus = toggleProductStatus;
+  window.quickNewProduct = quickNewProduct;
+  window.toggleRealProductStatus = toggleRealProductStatus;
+  window.deleteRealProduct = deleteRealProduct;
   window.toggleStorefront = toggleStorefront;
   window.toggleSupplierConnection = toggleSupplierConnection;
 })();
