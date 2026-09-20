@@ -662,6 +662,27 @@
 
 </div>
 
+<!-- Real, slug-driven storefront -- rendered from GET /store/:slug when the
+     URL path itself is a creator's slug (e.g. kaziiplus.com/jade-studio).
+     Separate from #screen-jade above, which stays the hardcoded marketing
+     showcase reachable from the preview grid. -->
+<div class="screen theme-light" id="screen-realstore">
+<div class="wrap">
+  <nav>
+    <button class="logo" onclick="goTo('site')"><div class="logo-mark">K+</div><div class="logo-text">Kazii+</div></button>
+  </nav>
+  <section class="hero" id="realstoreHero"></section>
+  <section class="section" style="padding-top:0;">
+    <div class="section-eyebrow">SHOP</div>
+    <h2 id="realstoreHeading">Products</h2>
+    <div class="product-grid" id="realstoreGrid"></div>
+  </section>
+  <footer>
+    <button class="powered" onclick="goTo('site')">Powered by <b>Kazii+</b></button>
+  </footer>
+</div>
+</div>
+
 <div class="screen theme-dark" id="screen-app">
 
 
@@ -2198,9 +2219,89 @@
   window.setSupplier = setSupplier;
 })();
 
+/* ===== REAL STOREFRONT ===== */
+(function(){
+  function emailOk(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  function renderNotFound(){
+    document.getElementById('realstoreHero').innerHTML = `<h1>Storefront not found</h1><div class="bio">This link doesn't match a live Kazii+ storefront.</div>`;
+    document.getElementById('realstoreHeading').style.display = 'none';
+    document.getElementById('realstoreGrid').innerHTML = '';
+  }
+
+  function renderOffline(brandName){
+    document.getElementById('realstoreHero').innerHTML = `<h1>${brandName}</h1>`;
+    document.getElementById('realstoreHeading').style.display = 'none';
+    document.getElementById('realstoreGrid').innerHTML = `<div class="storefront-offline"><div class="mono">This storefront is currently offline.</div></div>`;
+  }
+
+  function renderLive(slug, brandName, products){
+    document.getElementById('realstoreHero').innerHTML = `<h1>${brandName}</h1>`;
+    document.getElementById('realstoreHeading').style.display = '';
+    if(!products.length){
+      document.getElementById('realstoreGrid').innerHTML = `<div class="storefront-offline"><div class="mono">No products live yet — check back soon.</div></div>`;
+      return;
+    }
+    document.getElementById('realstoreGrid').innerHTML = products.map(p => `
+      <div class="product-card">
+        <div class="product-thumb" style="background:linear-gradient(135deg,#54503f,#1C1B18);"></div>
+        <div class="product-body">
+          <h3>${p.name}</h3>
+          <div class="cat">${p.productType}${p.color ? ' · ' + p.color : ''}</div>
+          <div class="product-row"><span class="product-price">$${p.price}</span></div>
+          <input class="text-input" type="email" id="rsEmail-${p.id}" placeholder="you@email.com" style="margin:10px 0; width:100%;">
+          <button class="buy-btn" onclick="realStoreBuy('${slug}','${p.id}')" style="width:100%;">Buy →</button>
+        </div>
+      </div>`).join('');
+  }
+
+  async function loadRealStorefront(slug){
+    goTo('realstore');
+    try {
+      const res = await fetch(`${API_BASE_URL}/store/${slug}`);
+      if(!res.ok){ renderNotFound(); return; }
+      const data = await res.json();
+      if(!data.live){ renderOffline(data.brandName); return; }
+      renderLive(slug, data.brandName, data.products || []);
+    } catch(e){
+      renderNotFound();
+    }
+  }
+
+  async function realStoreBuy(slug, productId){
+    const emailInput = document.getElementById('rsEmail-' + productId);
+    const email = emailInput ? emailInput.value.trim() : '';
+    if(!emailOk(email)){ toast('Enter a valid email to check out'); return; }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/store/${slug}/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, quantity: 1, customerEmail: email })
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok || !data.checkoutUrl){
+        toast(data.message || 'Could not start checkout — try again.');
+        return;
+      }
+      window.location.href = data.checkoutUrl;
+    } catch(e){
+      toast('Can’t reach the server — try again in a moment.');
+    }
+  }
+
+  window.loadRealStorefront = loadRealStorefront;
+  window.realStoreBuy = realStoreBuy;
+})();
+
 
 authSetMode('signin');
-goTo('site');
+const _pathSlug = window.location.pathname.replace(/^\/+|\/+$/g, '');
+if(_pathSlug){
+  loadRealStorefront(_pathSlug);
+} else {
+  goTo('site');
+}
 </script>
 </body>
 </html>
