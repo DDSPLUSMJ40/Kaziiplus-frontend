@@ -773,9 +773,9 @@
       <span class="mono" id="storeStatusLabel" style="font-size:12px; color:var(--text-soft);">STOREFRONT IS LIVE</span>
     </div>
     <div class="link-row">
-      <div class="link-box">kaziiplus.com/elenacruz</div>
+      <div class="link-box" id="storefrontLinkBox">kaziiplus.com/elenacruz</div>
       <button class="btn-outline" onclick="copyLink()">Copy link</button>
-      <button class="btn-stamp" style="text-decoration:none;" onclick="goTo('jade')">View live →</button>
+      <button class="btn-stamp" id="viewLiveBtn" style="text-decoration:none;" onclick="goTo('jade')">View live →</button>
     </div>
 
     <div class="social-section">
@@ -1719,12 +1719,32 @@
     storefrontLive = !storefrontLive;
     renderStorefront();
   }
+  function getStorefrontSlug(){
+    try {
+      const user = JSON.parse(localStorage.getItem('kaziiUser') || 'null');
+      return user && user.storefrontSlug;
+    } catch(e){ return null; }
+  }
   function copyLink(){
-    const url = 'https://kaziiplus.com/elenacruz';
+    const slug = getStorefrontSlug();
+    const url = slug ? `https://www.kaziiplus.com/${slug}` : 'https://kaziiplus.com/elenacruz';
     if(navigator.clipboard){ navigator.clipboard.writeText(url).catch(()=>{}); }
     toast('Storefront link copied');
   }
+  function renderStorefrontLink(){
+    const slug = getStorefrontSlug();
+    const linkBox = document.getElementById('storefrontLinkBox');
+    const viewBtn = document.getElementById('viewLiveBtn');
+    if(slug){
+      linkBox.textContent = `kaziiplus.com/${slug}`;
+      viewBtn.onclick = () => window.open(`https://www.kaziiplus.com/${slug}`, '_blank');
+    } else {
+      linkBox.textContent = 'kaziiplus.com/elenacruz';
+      viewBtn.onclick = () => goTo('jade');
+    }
+  }
   function renderStorefront(){
+    renderStorefrontLink();
     const sw = document.getElementById('storeSwitch');
     sw.classList.toggle('on', storefrontLive);
     document.getElementById('storeStatusLabel').textContent = storefrontLive ? 'STOREFRONT IS LIVE' : 'STOREFRONT IS OFFLINE';
