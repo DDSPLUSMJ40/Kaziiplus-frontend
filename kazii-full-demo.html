@@ -1947,12 +1947,19 @@
       return null;
     }
 
+    // First uploaded artwork layer becomes the print file, verbatim -- no
+    // compositing with text layers or the garment color yet. A text-only
+    // design simply has no print file until real canvas rendering exists.
+    const artLayer = state.layers.find(l => l.type === 'image');
+    const printFileBase64 = artLayer ? artLayer.src.replace(/^data:image\/\w+;base64,/, '') : null;
+
     const payload = {
       name,
       productType: state.productType,
       color: COLORS[state.color].label,
       designJson: { layers: state.layers },
       ...(state.price ? { price: Number(state.price) } : {}),
+      ...(printFileBase64 ? { printFileBase64 } : {}),
       ...extraFields
     };
 
