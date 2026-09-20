@@ -754,7 +754,7 @@
   <div class="tabpanel" id="tab-orders"><div class="page">
     <div class="topbar">
       <div><h1>Orders</h1><p>Every sale, from checkout to shipment.</p></div>
-      <button class="btn-outline" onclick="simulateOrder()">↻ Simulate new order</button>
+      <button class="btn-outline" id="simulateOrderBtn" onclick="simulateOrder()">↻ Simulate new order</button>
     </div>
     <div class="table-wrap">
       <div class="filter-row"><div class="filter-group" id="orderChips"></div></div>
@@ -1533,7 +1533,62 @@
     toast(`New order — ${p.name} from ${cust}`);
     renderAll();
   }
+  // Real orders (once fetched) vs the fake demo array below -- kept as two
+  // separate paths rather than merging, since a logged-out visitor still
+  // gets the populated "preview without account" demo, and a real creator's
+  // orders have no equivalent to the demo's Fulfilled/Shipped simulation
+  // (the backend only sets paymentStatus, automatically, via the Stripe
+  // webhook -- there's no manual advance-status endpoint to wire yet).
+  let realOrders = null;
+  let realOrderFilter = 'All';
+
+  async function fetchRealOrders(){
+    const token = localStorage.getItem('kaziiToken');
+    if(!token){ realOrders = null; return; }
+    try {
+      const res = await fetch(`${API_BASE_URL}/creators/me/orders`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json().catch(() => ({}));
+      realOrders = res.ok ? (data.orders || []) : [];
+    } catch(e){
+      realOrders = [];
+    }
+  }
+
+  function setRealOrderFilter(f){ realOrderFilter = f; renderOrders(); }
+
+  function renderRealOrders(){
+    document.getElementById('simulateOrderBtn').style.display = 'none';
+    if(realOrders === null){
+      document.getElementById('orderChips').innerHTML = '';
+      document.getElementById('ordersBody').innerHTML = `<tr><td colspan="7" class="mono" style="color:var(--text-soft);">Loading your orders…</td></tr>`;
+      fetchRealOrders().then(renderOrders);
+      return;
+    }
+    const statuses = ['All','PENDING','PAID','FAILED','REFUNDED'];
+    document.getElementById('orderChips').innerHTML = statuses.map(s=>
+      `<div class="chip ${realOrderFilter===s?'active':''}" onclick="setRealOrderFilter('${s}')">${s}</div>`).join('');
+    const list = realOrders.filter(o=>realOrderFilter==='All'||o.paymentStatus===realOrderFilter);
+    if(!list.length){
+      document.getElementById('ordersBody').innerHTML = `<tr><td colspan="7" class="mono" style="color:var(--text-soft);">No orders yet.</td></tr>`;
+      return;
+    }
+    document.getElementById('ordersBody').innerHTML = list.map(o => {
+      const cls = o.paymentStatus==='PAID' ? 'ok' : 'warn';
+      return `<tr>
+        <td class="mono">#${o.id.slice(-6)}</td>
+        <td>${o.product ? o.product.name : ''}</td>
+        <td class="mono" style="color:var(--text-soft);">${o.customerEmail || ''}</td>
+        <td class="mono">$${o.amount} × ${o.quantity}</td>
+        <td><span class="status-pill ${cls}"><span class="dot2"></span>${o.paymentStatus}</span></td>
+        <td class="mono" style="color:var(--text-soft);">${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td></td>
+      </tr>`;
+    }).join('');
+  }
+
   function renderOrders(){
+    if(localStorage.getItem('kaziiToken')){ renderRealOrders(); return; }
+    document.getElementById('simulateOrderBtn').style.display = '';
     document.getElementById('orderChips').innerHTML = ['All','Pending','Fulfilled','Shipped'].map(s=>
       `<div class="chip ${orderFilter===s?'active':''}" onclick="setOrderFilter('${s}')">${s}</div>`).join('');
     const list = orders.filter(o=>orderFilter==='All'||o.status===orderFilter).sort((a,b)=>b.id-a.id);
@@ -1761,6 +1816,7 @@
   window.copyLink = copyLink;
   window.deleteProduct = deleteProduct;
   window.setOrderFilter = setOrderFilter;
+  window.setRealOrderFilter = setRealOrderFilter;
   window.setSocialFilter = setSocialFilter;
   window.setSupDirFilter = setSupDirFilter;
   window.setSupplierView = setSupplierView;
