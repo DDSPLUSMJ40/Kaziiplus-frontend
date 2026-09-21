@@ -45,6 +45,12 @@ simulated, for a logged-in creator:
 - **Builder → real products** — Save/Publish create and update real
   products via `/products`, including an uploaded artwork layer as the
   product's print file.
+- **AI design generation** — the Builder's "AI Design" tab generates
+  print-ready artwork from a text prompt via `/ai/generate-design`
+  (Replicate-backed, background auto-removed, capped at 10 free
+  generations/month per creator). A successful generation becomes a
+  regular image layer through the same `addImageLayer()` path an upload
+  uses, so it feeds the same print-file pipeline with no separate code.
 - **Public storefront + checkout** — a creator's real slug
   (`kaziiplus.com/<slug>`) renders their real live products and runs a
   real Stripe Checkout, including shipping address collection.
