@@ -1456,7 +1456,54 @@
   }
 
   /* ---------- OVERVIEW ---------- */
+  let printfulConnected = null;
+
+  async function fetchPrintfulStatus(){
+    const token = localStorage.getItem('kaziiToken');
+    if(!token){ printfulConnected = null; return; }
+    try {
+      const res = await fetch(`${API_BASE_URL}/fulfillment/printful/status`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const data = await res.json().catch(() => ({}));
+      printfulConnected = res.ok ? !!data.connected : false;
+    } catch(e){
+      printfulConnected = false;
+    }
+  }
+
+  function renderRealOverview(){
+    if(realProducts === null || realOrders === null || printfulConnected === null){
+      document.getElementById('ovStats').innerHTML = `<div class="stat-card"><div class="lbl">Loading…</div></div>`;
+      document.getElementById('ovActivity').innerHTML = '';
+      Promise.all([
+        realProducts === null ? fetchRealProducts() : null,
+        realOrders === null ? fetchRealOrders() : null,
+        printfulConnected === null ? fetchPrintfulStatus() : null,
+      ]).then(renderOverview);
+      return;
+    }
+    const revenue = realOrders.filter(o=>o.paymentStatus==='PAID').reduce((s,o)=>s+Number(o.amount),0);
+    const live = realProducts.filter(p=>p.status==='LIVE').length;
+    const pending = realOrders.filter(o=>o.paymentStatus==='PENDING').length;
+    document.getElementById('ovStats').innerHTML = `
+      <div class="stat-card ok"><div class="lbl">Gross revenue</div><div class="num">$${revenue.toLocaleString()}</div><div class="sub">All paid orders to date</div></div>
+      <div class="stat-card"><div class="lbl">Live products</div><div class="num">${live}</div><div class="sub">of ${realProducts.length} total</div></div>
+      <div class="stat-card ${pending?'warn':'ok'}"><div class="lbl">Pending orders</div><div class="num">${pending}</div><div class="sub">Awaiting payment</div></div>
+      <div class="stat-card"><div class="lbl">Printful</div><div class="num">${printfulConnected ? 'Connected' : 'Not connected'}</div><div class="sub">Fulfillment provider</div></div>
+    `;
+    const recent = [...realOrders].sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).slice(0,5);
+    if(!recent.length){
+      document.getElementById('ovActivity').innerHTML = `<div class="mono" style="color:var(--text-soft); padding:16px;">No orders yet.</div>`;
+      return;
+    }
+    document.getElementById('ovActivity').innerHTML = recent.map(o=>`
+      <div class="activity-row">
+        <div>${o.product ? o.product.name : 'Order'} <span class="who">· ${o.customerEmail || ''}</span></div>
+        <div class="amt">$${o.amount}</div>
+      </div>`).join('');
+  }
+
   function renderOverview(){
+    if(localStorage.getItem('kaziiToken')){ renderRealOverview(); return; }
     const revenue = orders.reduce((s,o)=>s+o.amount,0);
     const live = products.filter(p=>p.status==='Live').length;
     const pending = orders.filter(o=>o.status==='Pending').length;
