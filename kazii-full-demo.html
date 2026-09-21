@@ -1919,7 +1919,59 @@
   }
 
   /* ---------- ANALYTICS ---------- */
+  function renderRealAnalytics(){
+    if(realOrders === null){
+      document.getElementById('anStats').innerHTML = `<div class="stat-card"><div class="lbl">Loading…</div></div>`;
+      document.getElementById('revenueBars').innerHTML = '';
+      document.getElementById('topProductsBody').innerHTML = '';
+      fetchRealOrders().then(renderAnalytics);
+      return;
+    }
+    const paid = realOrders.filter(o => o.paymentStatus === 'PAID');
+    const revenue = paid.reduce((s,o)=>s+Number(o.amount),0);
+    const avgOrder = paid.length ? (revenue/paid.length) : 0;
+    const byProduct = {};
+    paid.forEach(o=>{
+      const name = o.product ? o.product.name : 'Unknown';
+      byProduct[name] = byProduct[name] || {count:0, revenue:0};
+      byProduct[name].count++;
+      byProduct[name].revenue += Number(o.amount);
+    });
+    const topEntries = Object.entries(byProduct).sort((a,b)=>b[1].revenue-a[1].revenue);
+    const topProduct = topEntries.length ? topEntries[0][0] : '—';
+
+    document.getElementById('anStats').innerHTML = `
+      <div class="stat-card ok"><div class="lbl">Total revenue</div><div class="num">$${revenue.toLocaleString()}</div><div class="sub">${paid.length} paid orders</div></div>
+      <div class="stat-card"><div class="lbl">Total orders</div><div class="num">${realOrders.length}</div><div class="sub">All payment statuses</div></div>
+      <div class="stat-card"><div class="lbl">Avg. order value</div><div class="num">$${avgOrder.toFixed(0)}</div><div class="sub">Across paid orders</div></div>
+      <div class="stat-card"><div class="lbl">Top product</div><div class="num" style="font-size:16px; line-height:1.3;">${topProduct}</div><div class="sub">By revenue</div></div>
+    `;
+
+    const byDate = {};
+    paid.forEach(o=>{
+      const d = new Date(o.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+      byDate[d] = (byDate[d]||0) + Number(o.amount);
+    });
+    const dates = Object.keys(byDate);
+    if(!dates.length){
+      document.getElementById('revenueBars').innerHTML = `<div class="mono" style="color:var(--text-soft); padding:16px;">No paid orders yet.</div>`;
+    } else {
+      const max = Math.max(...dates.map(d=>byDate[d]), 1);
+      document.getElementById('revenueBars').innerHTML = dates.map(d => `
+        <div class="bar-col">
+          <div class="bar-val">$${byDate[d]}</div>
+          <div class="bar" style="height:${Math.max((byDate[d]/max)*100,4)}%;"></div>
+          <div class="bar-label">${d}</div>
+        </div>`).join('');
+    }
+
+    document.getElementById('topProductsBody').innerHTML = topEntries.length
+      ? topEntries.map(([name,d]) => `<tr><td>${name}</td><td class="mono">${d.count}</td><td class="mono">$${d.revenue}</td></tr>`).join('')
+      : `<tr><td colspan="3" class="mono" style="color:var(--text-soft);">No paid orders yet.</td></tr>`;
+  }
+
   function renderAnalytics(){
+    if(localStorage.getItem('kaziiToken')){ renderRealAnalytics(); return; }
     const revenue = orders.reduce((s,o)=>s+o.amount,0);
     const fulfilledRevenue = orders.filter(o=>o.status!=='Pending').reduce((s,o)=>s+o.amount,0);
     const avgOrder = orders.length ? (revenue/orders.length) : 0;
