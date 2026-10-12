@@ -2295,12 +2295,14 @@
   // A null status means "keep the task's current status" (used by note saves).
   let windDownQueue = Promise.resolve();
   function toggleDissolutionTask(taskKey, status, note){
-    windDownQueue = windDownQueue.then(() => doDissolutionUpdate(taskKey, status, note)).catch(() => {});
+    // Capture the case id now, not when the job runs: the user may leave and open another case meanwhile.
+    const caseId = windDown ? windDown.case.id : null;
+    windDownQueue = windDownQueue.then(() => doDissolutionUpdate(caseId, taskKey, status, note)).catch(() => {});
     return windDownQueue;
   }
 
-  async function doDissolutionUpdate(taskKey, status, note){
-    if(!windDown) return;
+  async function doDissolutionUpdate(caseId, taskKey, status, note){
+    if(!caseId || !windDown || windDown.case.id !== caseId) return; // case closed or switched since enqueue
     if(status === null){
       const t = findDissolutionTask(taskKey);
       if(!t) return;
@@ -2308,8 +2310,8 @@
     }
     const body = { status };
     if(note !== undefined) body.note = note;
-    const r = await windDownCall('PATCH', `/dissolution/${encodeURIComponent(windDown.case.id)}/tasks/${encodeURIComponent(taskKey)}`, body);
-    if(!windDown) return; // screen was closed while the request was in flight
+    const r = await windDownCall('PATCH', `/dissolution/${encodeURIComponent(caseId)}/tasks/${encodeURIComponent(taskKey)}`, body);
+    if(!windDown || windDown.case.id !== caseId) return; // screen closed or another case opened while in flight
     if(r.ok){
       windDown = r.data;
       if(windDown.case.status === 'COMPLETED') toast('Wind-down complete.');
