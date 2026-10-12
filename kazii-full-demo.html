@@ -2291,13 +2291,25 @@
   }
 
   // Ticks, un-ticks, or marks an item not applicable; an optional note rides along.
-  async function toggleDissolutionTask(taskKey, status, note){
-    if(!windDown || windDownBusy) return;
-    windDownBusy = true;
+  // Task updates are serialised (never dropped): each runs in order against the latest state.
+  // A null status means "keep the task's current status" (used by note saves).
+  let windDownQueue = Promise.resolve();
+  function toggleDissolutionTask(taskKey, status, note){
+    windDownQueue = windDownQueue.then(() => doDissolutionUpdate(taskKey, status, note)).catch(() => {});
+    return windDownQueue;
+  }
+
+  async function doDissolutionUpdate(taskKey, status, note){
+    if(!windDown) return;
+    if(status === null){
+      const t = findDissolutionTask(taskKey);
+      if(!t) return;
+      status = t.status;
+    }
     const body = { status };
     if(note !== undefined) body.note = note;
     const r = await windDownCall('PATCH', `/dissolution/${encodeURIComponent(windDown.case.id)}/tasks/${encodeURIComponent(taskKey)}`, body);
-    windDownBusy = false;
+    if(!windDown) return; // screen was closed while the request was in flight
     if(r.ok){
       windDown = r.data;
       if(windDown.case.status === 'COMPLETED') toast('Wind-down complete.');
@@ -2308,9 +2320,7 @@
   }
 
   function saveDissolutionNote(taskKey, value){
-    const t = findDissolutionTask(taskKey);
-    if(!t) return;
-    toggleDissolutionTask(taskKey, t.status, value);
+    toggleDissolutionTask(taskKey, null, value);
   }
 
   async function requestWindDownFiling(){
@@ -2318,7 +2328,16 @@
     windDownBusy = true;
     const r = await windDownCall('POST', `/dissolution/${encodeURIComponent(windDown.case.id)}/request-filing`);
     windDownBusy = false;
-    if(!r.ok){ windDownFail(r); renderCompany(); return; }
+    if(!r.ok){
+      if(r.status !== 0){
+        const err = r.data && r.data.error;
+        toast(r.status === 503 ? 'The filing request didn’t go through — you can try again.'
+          : err === 'filing_in_progress' ? WD_ERRORS.filing_in_progress
+          : 'Something went wrong — please try again.');
+      }
+      await openWindDown(windDown.case.id); // the server may have moved the filing to FAILED or REQUESTED
+      return;
+    }
     toast('Filing requested — we’ll update this as the state processes it.');
     await openWindDown(windDown.case.id);
   }
@@ -2420,6 +2439,7 @@
           ${locked ? `<span class="mono" style="font-size:11px; ${soft}">Locked</span>` : ''}
         </div>
         <p style="${soft} font-size:13px; line-height:1.55; margin:6px 0 10px;">${formationEsc(s.intro)}</p>
+        ${locked ? '' : `<p style="${soft} font-size:11.5px; line-height:1.5; margin:0 0 10px;">${formationEsc(v.guidance)}</p>`}
         ${locked ? `<div style="font-size:12.5px; ${soft}">Complete the previous step first.</div>` : ''}
         ${locked ? '' : extra + s.tasks.map(t => renderWindDownTask(t, locked, caseOpen, v)).join('')}
       </div>`;
