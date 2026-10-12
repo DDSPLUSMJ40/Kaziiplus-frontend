@@ -2075,6 +2075,7 @@
               </div>
               ${detail}
               ${extras ? `<div style="margin-top:8px; font-size:12px; color:var(--text-soft);">${extras}</div>` : ''}
+              ${windDownAction(o)}
             </div>`;
         }).join('')}
       </div>`;
@@ -2119,6 +2120,8 @@
         </div>`;
       return;
     }
+
+    if(windDown){ renderWindDown(); return; }
 
     const stateOptions = `<option value="">Select…</option>` + FORMATION_STATES.map(s => `<option value="${s}">${s}</option>`).join('');
     const label = t => `<label style="display:block; font-size:11.5px; color:var(--text-soft); margin-bottom:6px;">${t}</label>`;
@@ -2214,6 +2217,244 @@
     renderCompanyOrders();
   }
 
+  /* ---------- COMPANY: wind-down (dissolution) ---------- */
+  let windDown = null;      // the server's case view while the wind-down screen is open, else null
+  let windDownBusy = false;
+
+  const WD_ERRORS = {
+    step_locked: 'Finish the earlier step first.',
+    later_steps_resolved: 'Un-tick the later items first.',
+    case_closed: 'This wind-down is already complete.',
+    filing_in_progress: 'The filing request is already in progress.',
+    filing_already_requested: 'The filing was already requested, so this can’t be canceled.',
+    task_not_tickable: 'That item updates automatically.',
+    dissolution_exists: 'A wind-down was already started for this company.',
+    formation_unavailable: 'Company formation isn’t available right now.',
+    not_found: 'We couldn’t find that wind-down.',
+  };
+
+  async function windDownCall(method, path, body){
+    const token = localStorage.getItem('kaziiToken');
+    try {
+      const res = await fetch(`${API_BASE_URL}${path}`, {
+        method,
+        headers: Object.assign({ 'Authorization': `Bearer ${token}` }, body ? { 'Content-Type': 'application/json' } : {}),
+        body: body ? JSON.stringify(body) : undefined
+      });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    } catch(e){
+      toast('Can’t reach the server — try again in a moment.');
+      return { ok: false, status: 0, data: {} };
+    }
+  }
+
+  function windDownFail(result){
+    if(result.status === 0) return; // network failure already toasted
+    toast(WD_ERRORS[result.data && result.data.error] || 'Something went wrong — please try again.');
+  }
+
+  function findDissolutionTask(taskKey){
+    if(!windDown) return null;
+    for(const s of windDown.steps){
+      for(const t of s.tasks){ if(t.taskKey === taskKey) return t; }
+    }
+    return null;
+  }
+
+  async function startWindDown(formationOrderId){
+    if(windDownBusy) return;
+    windDownBusy = true;
+    const r = await windDownCall('POST', '/dissolution', { formationOrderId });
+    windDownBusy = false;
+    if(r.ok){ windDown = r.data; renderCompany(); return; }
+    windDownFail(r);
+  }
+
+  async function openWindDown(caseId){
+    if(windDownBusy) return;
+    windDownBusy = true;
+    const r = await windDownCall('GET', `/dissolution/${encodeURIComponent(caseId)}`);
+    windDownBusy = false;
+    if(r.ok){ windDown = r.data; renderCompany(); return; }
+    windDownFail(r);
+  }
+
+  async function refreshWindDown(){
+    if(windDown) await openWindDown(windDown.case.id);
+  }
+
+  async function closeWindDown(){
+    windDown = null;
+    await fetchFormationOrders();
+    renderCompany();
+  }
+
+  // Ticks, un-ticks, or marks an item not applicable; an optional note rides along.
+  async function toggleDissolutionTask(taskKey, status, note){
+    if(!windDown || windDownBusy) return;
+    windDownBusy = true;
+    const body = { status };
+    if(note !== undefined) body.note = note;
+    const r = await windDownCall('PATCH', `/dissolution/${encodeURIComponent(windDown.case.id)}/tasks/${encodeURIComponent(taskKey)}`, body);
+    windDownBusy = false;
+    if(r.ok){
+      windDown = r.data;
+      if(windDown.case.status === 'COMPLETED') toast('Wind-down complete.');
+    } else {
+      windDownFail(r);
+    }
+    renderCompany(); // re-render either way so a rejected tick snaps back
+  }
+
+  function saveDissolutionNote(taskKey, value){
+    const t = findDissolutionTask(taskKey);
+    if(!t) return;
+    toggleDissolutionTask(taskKey, t.status, value);
+  }
+
+  async function requestWindDownFiling(){
+    if(!windDown || windDownBusy) return;
+    windDownBusy = true;
+    const r = await windDownCall('POST', `/dissolution/${encodeURIComponent(windDown.case.id)}/request-filing`);
+    windDownBusy = false;
+    if(!r.ok){ windDownFail(r); renderCompany(); return; }
+    toast('Filing requested — we’ll update this as the state processes it.');
+    await openWindDown(windDown.case.id);
+  }
+
+  async function takeStorefrontOffline(){
+    const r = await windDownCall('PATCH', '/creators/me/storefront', { storefrontLive: false });
+    if(r.status === 0) return; // network failure already toasted
+    toast(r.ok ? 'Your storefront is now offline.' : 'Couldn’t take the storefront offline — try again.');
+  }
+
+  async function cancelWindDown(){
+    if(!windDown || windDownBusy) return;
+    if(!window.confirm('Cancel this wind-down? Your checklist progress will be deleted.')) return;
+    windDownBusy = true;
+    const r = await windDownCall('DELETE', `/dissolution/${encodeURIComponent(windDown.case.id)}`);
+    windDownBusy = false;
+    if(r.ok){ windDown = null; await fetchFormationOrders(); renderCompany(); return; }
+    windDownFail(r);
+  }
+
+  const WD_BTN = 'padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--panel-2); color:var(--text); font-size:12.5px; cursor:pointer;';
+  const WD_PRIMARY_BTN = 'padding:9px 16px; border-radius:8px; border:none; background:var(--tag); color:#171308; font-weight:600; font-size:12.5px; cursor:pointer;';
+
+  // The action shown under each filing in "Your filings".
+  function windDownAction(o){
+    if(o.status !== 'COMPLETED') return '';
+    const btn = (label, handler) => `<button style="margin-top:10px; ${WD_BTN}" onclick="${handler}">${label}</button>`;
+    if(!o.dissolution) return btn('Wind down this company', `startWindDown('${formationEsc(o.id)}')`);
+    const d = o.dissolution;
+    if(d.status === 'OPEN') return btn(`Continue wind-down (${d.resolvedTasks} of ${d.totalTasks} done)`, `openWindDown('${formationEsc(d.id)}')`);
+    return `<div style="margin-top:10px; display:flex; gap:10px; align-items:center;">
+      <span class="mono" style="padding:4px 10px; border:1px solid var(--line); border-radius:100px; font-size:11px; color:var(--text-soft);">Dissolved</span>
+      <button style="${WD_BTN}" onclick="openWindDown('${formationEsc(d.id)}')">View checklist</button>
+    </div>`;
+  }
+
+  function renderWindDownTask(t, locked, caseOpen, v){
+    const soft = 'color:var(--text-soft);';
+    if(t.automated){
+      const fs = v.case.filingStatus;
+      const labels = { NOT_REQUESTED:'Not requested', REQUESTED:'Requested — waiting on the state', FILED:'Filed', FAILED:'Failed — you can retry' };
+      const prereq = t.after ? findDissolutionTask(t.after) : null;
+      const prereqDone = !prereq || prereq.status === 'DONE';
+      const canRequest = caseOpen && !locked && prereqDone && (fs === 'NOT_REQUESTED' || fs === 'FAILED');
+      return `
+        <div style="padding:12px 0; border-top:1px solid var(--line);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div>
+              <div style="font-size:13.5px; font-weight:600;">${formationEsc(t.label)}</div>
+              <div class="mono" style="font-size:11.5px; ${fs === 'FAILED' ? 'color:var(--rust);' : soft}">${formationEsc(labels[fs] || fs)}</div>
+              ${!prereqDone && !locked ? `<div style="font-size:12px; ${soft}">Tick “${formationEsc(prereq.label)}” before requesting the filing.</div>` : ''}
+            </div>
+            <div style="display:flex; gap:8px;">
+              ${fs === 'REQUESTED' ? `<button style="${WD_BTN}" onclick="refreshWindDown()">↻ Refresh status</button>` : ''}
+              ${canRequest ? `<button style="${WD_PRIMARY_BTN}" onclick="requestWindDownFiling()">${fs === 'FAILED' ? 'Retry filing request' : 'Request the filing'}</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    const prereq = t.after ? findDissolutionTask(t.after) : null;
+    const prereqOk = !prereq || prereq.status === 'DONE';
+    const editable = caseOpen && !locked && prereqOk;
+    const na = t.status === 'NOT_APPLICABLE';
+    const key = formationEsc(t.taskKey);
+    return `
+      <div style="padding:12px 0; border-top:1px solid var(--line);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+          <label style="display:flex; gap:10px; align-items:flex-start; font-size:13.5px; line-height:1.45; ${na ? soft : ''}">
+            <input type="checkbox" ${t.status === 'DONE' ? 'checked' : ''} ${editable && !na ? '' : 'disabled'} style="margin-top:3px;"
+              onchange="toggleDissolutionTask('${key}', this.checked ? 'DONE' : 'PENDING')">
+            <span>${formationEsc(t.label)}${na ? ' <span class="mono" style="font-size:11px;">(not applicable)</span>' : ''}</span>
+          </label>
+          ${t.skippable && editable ? `<button style="${WD_BTN} white-space:nowrap;" onclick="toggleDissolutionTask('${key}', '${na ? 'PENDING' : 'NOT_APPLICABLE'}')">${na ? 'Undo' : 'Not applicable'}</button>` : ''}
+        </div>
+        ${t.after && !prereqOk && !locked ? `<div style="margin:4px 0 0 26px; font-size:12px; ${soft}">Available once “${formationEsc(prereq.label)}” is done.</div>` : ''}
+        ${editable ? `<input type="text" maxlength="500" placeholder="Add a note (optional)" value="${formationEsc(t.note)}" style="${FORMATION_INPUT_STYLE} margin:8px 0 0 26px; width:calc(100% - 26px);"
+          onchange="saveDissolutionNote('${key}', this.value)">` : (t.note ? `<div style="margin:6px 0 0 26px; font-size:12px; ${soft}">${formationEsc(t.note)}</div>` : '')}
+      </div>`;
+  }
+
+  function renderWindDownStep(s, i, v){
+    const locked = !s.unlocked;
+    const caseOpen = v.case.status === 'OPEN';
+    const soft = 'color:var(--text-soft);';
+    let extra = '';
+    if(s.key === 'WIND_UP' && !locked && caseOpen){
+      const n = v.openPaidOrders;
+      extra = `
+        <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:12px; font-size:13px;">
+          ${n > 0 ? `${n} paid order${n === 1 ? '' : 's'} may still be in progress.` : 'No paid orders appear to be in progress.'}
+          <div style="margin-top:8px;"><button style="${WD_BTN}" onclick="takeStorefrontOffline()">Take storefront offline</button></div>
+        </div>`;
+    }
+    return `
+      <div class="panel-box" style="padding:20px 24px; margin-bottom:14px; ${locked ? 'opacity:0.55;' : ''}">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="margin:0; font-size:17px;">${i + 1}. ${formationEsc(s.title)}</h2>
+          ${locked ? `<span class="mono" style="font-size:11px; ${soft}">Locked</span>` : ''}
+        </div>
+        <p style="${soft} font-size:13px; line-height:1.55; margin:6px 0 10px;">${formationEsc(s.intro)}</p>
+        ${locked ? `<div style="font-size:12.5px; ${soft}">Complete the previous step first.</div>` : ''}
+        ${locked ? '' : extra + s.tasks.map(t => renderWindDownTask(t, locked, caseOpen, v)).join('')}
+      </div>`;
+  }
+
+  function renderWindDown(){
+    const body = document.getElementById('companyBody');
+    if(!body || !windDown) return;
+    const v = windDown;
+    const c = v.case;
+    const done = v.progress.resolved;
+    const total = v.progress.total;
+    const pct = Math.round((done / total) * 100);
+    const soft = 'color:var(--text-soft);';
+    const canCancel = c.status === 'OPEN' && (c.filingStatus === 'NOT_REQUESTED' || c.filingStatus === 'FAILED');
+    const badge = c.status === 'COMPLETED'
+      ? `<span class="mono" style="padding:4px 10px; border:1px solid var(--line); border-radius:100px; font-size:11px; ${soft}">Dissolved</span>`
+      : '';
+    body.innerHTML = `
+      <button style="${WD_BTN} margin-bottom:14px;" onclick="closeWindDown()">← Back to your filings</button>
+      <div class="panel-box" style="padding:22px 24px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+          <h2 style="margin:0;">Wind down ${formationEsc(c.companyName)} <span class="mono" style="${soft} font-weight:400; font-size:13px;">· ${formationEsc(c.state)}</span></h2>
+          ${badge}
+        </div>
+        <div style="margin:14px 0 6px; height:8px; background:var(--panel-2); border-radius:100px; overflow:hidden;">
+          <div style="width:${pct}%; height:100%; background:var(--green);"></div>
+        </div>
+        <div class="mono" style="font-size:12px; ${soft}">${done} of ${total} items done</div>
+        <p style="${soft} font-size:12.5px; line-height:1.55; margin:12px 0 0;">${formationEsc(v.guidance)}</p>
+      </div>
+      ${v.steps.map((s, i) => renderWindDownStep(s, i, v)).join('')}
+      ${canCancel ? `<div style="text-align:center; margin:18px 0;"><button style="background:none; border:none; ${soft} font-size:12.5px; cursor:pointer; text-decoration:underline;" onclick="cancelWindDown()">Cancel this wind-down</button></div>` : ''}`;
+  }
+
   function renderAll(){
     renderOverview(); renderProducts(); renderOrders(); renderStorefront(); renderSocialFeed(); renderSuppliers(); renderFulfillmentGrid(); renderAnalytics(); renderCompany();
   }
@@ -2244,6 +2485,15 @@
   window.loadFormationQuote = loadFormationQuote;
   window.startFormationCheckout = startFormationCheckout;
   window.refreshFormationOrders = refreshFormationOrders;
+  window.startWindDown = startWindDown;
+  window.openWindDown = openWindDown;
+  window.closeWindDown = closeWindDown;
+  window.refreshWindDown = refreshWindDown;
+  window.toggleDissolutionTask = toggleDissolutionTask;
+  window.saveDissolutionNote = saveDissolutionNote;
+  window.requestWindDownFiling = requestWindDownFiling;
+  window.takeStorefrontOffline = takeStorefrontOffline;
+  window.cancelWindDown = cancelWindDown;
 })();
 
 /* ===== BUILDER ===== */
