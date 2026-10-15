@@ -45,7 +45,7 @@ simulated, for a logged-in creator:
 - **Builder → real products** — Save/Publish create and update real
   products via `/products`, including an uploaded artwork layer as the
   product's print file.
-- **AI design generation** — the Builder's "AI Design" tab generates
+- **Intelligence design generation** — the Builder's "Intelligence Design" tab generates
   print-ready artwork from a text prompt via `/ai/generate-design`
   (Replicate-backed, background auto-removed, capped at 10 free
   generations/month per creator). A successful generation becomes a

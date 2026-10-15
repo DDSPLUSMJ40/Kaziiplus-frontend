@@ -885,7 +885,7 @@
     <button class="rail-item" data-tab="color" onclick="builderSetTab('color')"><span class="ic">◐</span><span class="lbl">Color</span></button>
     <button class="rail-item" data-tab="artwork" onclick="builderSetTab('artwork')"><span class="ic">▤</span><span class="lbl">Artwork</span></button>
     <button class="rail-item" data-tab="text" onclick="builderSetTab('text')"><span class="ic">Aa</span><span class="lbl">Text</span></button>
-    <button class="rail-item" data-tab="ai" onclick="builderSetTab('ai')"><span class="ic">✦</span><span class="lbl">AI Design</span></button>
+    <button class="rail-item" data-tab="ai" onclick="builderSetTab('ai')"><span class="ic">✦</span><span class="lbl">Intelligence Design</span></button>
     <button class="rail-item" data-tab="printful" onclick="builderSetTab('printful')"><span class="ic">⎙</span><span class="lbl">Printful</span></button>
     <button class="rail-item" data-tab="gelato" onclick="builderSetTab('gelato')"><span class="ic">⌘</span><span class="lbl">Gelato</span></button>
     <button class="rail-item" data-tab="cjdrop" onclick="builderSetTab('cjdrop')"><span class="ic">▤</span><span class="lbl">CJ Drop</span></button>
@@ -2688,7 +2688,7 @@
   async function generateAiDesign(){
     const token = localStorage.getItem('kaziiToken');
     if(!token){
-      toast('Sign up to use AI design generation');
+      toast('Sign up to use Intelligence design generation');
       goTo('auth'); authSetMode('signup');
       return;
     }
@@ -2847,7 +2847,7 @@
         ? `${pendingAiImage.usedThisMonth} of ${pendingAiImage.limit} free generations used this month`
         : '';
       panel.innerHTML = `
-        <div class="panel-label">Generate with AI</div>
+        <div class="panel-label">Generate with Intelligence</div>
         <div class="panel-sub" style="font-size:12px; color:var(--text-soft); margin-bottom:16px; line-height:1.5;">Describe the artwork you want — Kazii generates it and you decide whether to add it to your design.</div>
         <label class="field-label">Prompt</label>
         <textarea class="text-input" id="aiPromptInput" style="min-height:80px; resize:vertical;" placeholder="e.g. a minimalist line drawing of a mountain range" ${aiGenerating ? 'disabled' : ''}>${pendingAiImage ? pendingAiImage.prompt : ''}</textarea>
